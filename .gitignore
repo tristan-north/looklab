@@ -3,3 +3,4 @@ Makefile
 moc_*
 .qmake.stash
 build/
+.cache

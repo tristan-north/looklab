@@ -1,0 +1,17 @@
+[
+  {
+    "directory": "/home/tristan/tools/looklab/src",
+    "command": "g++ -c -std=gnu++11 -D_REENTRANT -fPIC -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -I. -isystem /usr/include/qt5 -isystem /usr/include/qt5/QtOpenGL -isystem /usr/include/qt5/QtWidgets -isystem /usr/include/qt5/QtGui -isystem /usr/include/qt5/QtCore -isystem /usr/include/libdrm -I/usr/lib64/qt5/mkspecs/linux-g++ -o main.o main.cpp",
+    "file": "main.cpp"
+  },
+  {
+    "directory": "/home/tristan/tools/looklab/src",
+    "command": "g++ -c -std=gnu++11 -D_REENTRANT -fPIC -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -I. -isystem /usr/include/qt5 -isystem /usr/include/qt5/QtOpenGL -isystem /usr/include/qt5/QtWidgets -isystem /usr/include/qt5/QtGui -isystem /usr/include/qt5/QtCore -isystem /usr/include/libdrm -I/usr/lib64/qt5/mkspecs/linux-g++ -o mainwindow.o mainwindow.cpp",
+    "file": "mainwindow.cpp"
+  },
+  {
+    "directory": "/home/tristan/tools/looklab/src",
+    "command": "g++ -c -std=gnu++11 -D_REENTRANT -fPIC -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -I. -isystem /usr/include/qt5 -isystem /usr/include/qt5/QtOpenGL -isystem /usr/include/qt5/QtWidgets -isystem /usr/include/qt5/QtGui -isystem /usr/include/qt5/QtCore -isystem /usr/include/libdrm -I/usr/lib64/qt5/mkspecs/linux-g++ -o glwidget.o glwidget.cpp",
+    "file": "glwidget.cpp"
+  }
+]

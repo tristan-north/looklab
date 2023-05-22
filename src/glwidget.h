@@ -2,15 +2,11 @@
 #define GLWIDGET_H
 
 #include <QOpenGLWidget>
-#include <QOpenGLFunctions>
-#include <QOpenGLVertexArrayObject>
-#include <QOpenGLBuffer>
+#include <QOpenGLFunctions_3_3_Core>
 #include <QMatrix4x4>
-#include "logo.h"
 
-QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
-class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions
+class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
     Q_OBJECT
 
@@ -25,7 +21,6 @@ public slots:
     void setXRotation(int angle);
     void setYRotation(int angle);
     void setZRotation(int angle);
-    void cleanup();
 
 signals:
     void xRotationChanged(int angle);
@@ -40,16 +35,16 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
 
 private:
-    void setupVertexAttribs();
-
+    uint createProgram();
+    void printShaderCompilationStatus(uint id);
+    void printGlErrors(QString str);
     int m_xRot = 0;
     int m_yRot = 0;
     int m_zRot = 0;
     QPoint m_lastPos;
-    Logo m_logo;
-    QOpenGLVertexArrayObject m_vao;
-    QOpenGLBuffer m_logoVbo;
-    QOpenGLShaderProgram *m_program = nullptr;
+    uint m_program;
+    uint m_vao;
+    uint m_buffer;
     int m_projMatrixLoc = 0;
     int m_mvMatrixLoc = 0;
     int m_normalMatrixLoc = 0;

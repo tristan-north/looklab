@@ -10,7 +10,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow();
 
-private slots:
+protected:
+    void keyPressEvent(QKeyEvent *event) override;
 
 };
 

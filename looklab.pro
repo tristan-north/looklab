@@ -1,14 +1,13 @@
 HEADERS       = src/glwidget.h \
-                src/mainwindow.h \
-                src/logo.h
+                src/mainwindow.h
+
 SOURCES       = src/glwidget.cpp \
                 src/main.cpp \
-                src/mainwindow.cpp \
-                src/logo.cpp
+                src/mainwindow.cpp
                 
 INCLUDEPATH += src
 
-QT           += widgets
+QT           += widgets opengl
 
 CONFIG += debug
 TARGET = looklab

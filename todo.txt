@@ -1,0 +1,1 @@
+Swap from using glDrawArrays to glDrawElements which uses an index buffer to save memory.
