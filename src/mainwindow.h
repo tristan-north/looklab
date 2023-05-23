@@ -1,5 +1,4 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
 
@@ -14,5 +13,3 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
 
 };
-
-#endif

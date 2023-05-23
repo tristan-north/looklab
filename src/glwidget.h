@@ -1,5 +1,4 @@
-#ifndef GLWIDGET_H
-#define GLWIDGET_H
+#pragma once
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_3_3_Core>
@@ -17,15 +16,9 @@ public:
     QSize minimumSizeHint() const override;
     QSize sizeHint() const override;
 
-public slots:
-    void setXRotation(int angle);
-    void setYRotation(int angle);
-    void setZRotation(int angle);
-
-signals:
-    void xRotationChanged(int angle);
-    void yRotationChanged(int angle);
-    void zRotationChanged(int angle);
+    void setXRotation(float angle);
+    void setYRotation(float angle);
+    void setZCamPos(float zPos);
 
 protected:
     void initializeGL() override;
@@ -38,20 +31,15 @@ private:
     uint createProgram();
     void printShaderCompilationStatus(uint id);
     void printGlErrors(QString str);
-    int m_xRot = 0;
-    int m_yRot = 0;
-    int m_zRot = 0;
+    float m_xRot = 0;
+    float m_yRot = 0;
+    float m_zRot = 0;
+    float m_zCamPos = -4.0f;
     QPoint m_lastPos;
-    uint m_program;
-    uint m_vao;
-    uint m_buffer;
-    int m_projMatrixLoc = 0;
-    int m_mvMatrixLoc = 0;
-    int m_normalMatrixLoc = 0;
-    int m_lightPosLoc = 0;
+    uint m_program = 0;
+    uint m_vao = 0;
+    uint m_MVPMatrixLoc = 0;
     QMatrix4x4 m_proj;
     QMatrix4x4 m_camera;
     QMatrix4x4 m_world;
 };
-
-#endif

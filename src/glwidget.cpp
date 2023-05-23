@@ -1,24 +1,18 @@
 #include "glwidget.h"
+#include "shaders.h"
+#include <GL/gl.h>
 #include <QMouseEvent>
 #include <QOpenGLShaderProgram>
 #include <QCoreApplication>
 #include <QTimer>
+#include <cmath>
+#include <qnamespace.h>
 
-static const char *vertexShaderSource = R"(
-    #version 330 core
-    layout(location = 0) in vec4 position;
-    void main() {
-       gl_Position = position;
-    }
-)";
-
-static const char *fragmentShaderSource = R"(
-    #version 330 core
-    out vec4 color;
-    void main() {
-       color = vec4(0.5, 0.8, 0.4, 1.0);
-    }
-)";
+float VIEW_ROTATE_SPEED = 0.2f;
+float VIEW_DOLLY_SPEED = 0.01f;
+float VIEW_FOV = 45.0;
+float VIEW_NEAR_CLIP = 0.01f;
+float VIEW_FAR_CLIP = 1000.0f;
 
 GLWidget::GLWidget(QWidget *parent)
     : QOpenGLWidget(parent)
@@ -96,40 +90,34 @@ QSize GLWidget::sizeHint() const
     return QSize(800, 800);
 }
 
-static void qNormalizeAngle(int &angle)
+static void qNormalizeAngle(float &angle)
 {
-    while (angle < 0)
-        angle += 360 * 16;
-    while (angle > 360 * 16)
-        angle -= 360 * 16;
+    if(angle > 360.0f)
+        angle = std::fmod(angle, 360.0f);
 }
 
-void GLWidget::setXRotation(int angle)
+void GLWidget::setXRotation(float angle)
 {
     qNormalizeAngle(angle);
     if (angle != m_xRot) {
         m_xRot = angle;
-        emit xRotationChanged(angle);
         update();
     }
 }
 
-void GLWidget::setYRotation(int angle)
+void GLWidget::setYRotation(float angle)
 {
     qNormalizeAngle(angle);
     if (angle != m_yRot) {
         m_yRot = angle;
-        emit yRotationChanged(angle);
         update();
     }
 }
 
-void GLWidget::setZRotation(int angle)
+void GLWidget::setZCamPos(float zPos)
 {
-    qNormalizeAngle(angle);
-    if (angle != m_zRot) {
-        m_zRot = angle;
-        emit zRotationChanged(angle);
+    if( zPos != m_zCamPos ) {
+        m_zCamPos = zPos;
         update();
     }
 }
@@ -147,21 +135,43 @@ void GLWidget::initializeGL()
     m_program = createProgram();
     glUseProgram(m_program);
 
-    float positions[9] = {
-        -0.8f, -0.8f, 0.0f,
-        0.0f, 0.8f, 0.0f,
-        0.8f, -0.8f, 0.0f
+    m_MVPMatrixLoc = glGetUniformLocation(m_program, "u_MVP");
+
+    float positions[24] = {
+       -0.5f,  0.0f,  0.5f,
+        0.5f,  0.0f,  0.5f,
+        0.5f,  1.0f,  0.5f,
+       -0.5f,  1.0f,  0.5f,
+
+       -0.5f,  0.0f, -0.5f,
+        0.5f,  0.0f, -0.5f,
+        0.5f,  1.0f, -0.5f,
+       -0.5f,  1.0f, -0.5f
+    };
+
+    uint indices[48] = {
+        0, 1, 2, 2, 3, 0,
+        1, 2, 5, 5, 2, 6,
+        4, 5, 6, 6, 7, 4,
+        7, 4, 3, 3, 4, 0,
+        5, 4, 0, 0, 1, 0,
+        3, 2, 6, 6, 7, 3
     };
 
     glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
 
-    uint m_buffer;
-    glGenBuffers(1, &m_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), positions, GL_STATIC_DRAW);
+    uint buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), positions, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, 0);
+
+    uint ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 48 * sizeof(uint), indices, GL_STATIC_DRAW);
 
     printGlErrors("init");
 }
@@ -172,14 +182,25 @@ void GLWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT);
     printGlErrors("paintGL start");
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    QMatrix4x4 mvpMatrix;
+    QMatrix4x4 modelMatrix;
+    QMatrix4x4 viewMatrix;
+
+    modelMatrix.rotate(m_xRot, 1, 0, 0);
+    modelMatrix.rotate(m_yRot, 0, 1, 0);
+
+    viewMatrix.translate(QVector3D(0.0f, -0.5f, m_zCamPos));
+    mvpMatrix = m_proj * viewMatrix * modelMatrix;
+    glUniformMatrix4fv(m_MVPMatrixLoc, 1, GL_FALSE, mvpMatrix.constData());
+
+    glDrawElements(GL_TRIANGLES, 48, GL_UNSIGNED_INT, nullptr);
     printGlErrors("glDrawArrays");
 }
 
 void GLWidget::resizeGL(int w, int h)
 {
     m_proj.setToIdentity();
-    m_proj.perspective(45.0f, GLfloat(w) / h, 0.01f, 100.0f);
+    m_proj.perspective(VIEW_FOV, GLfloat(w) / h, VIEW_NEAR_CLIP, VIEW_FAR_CLIP);
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -192,12 +213,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     int dx = event->x() - m_lastPos.x();
     int dy = event->y() - m_lastPos.y();
 
-    if (event->buttons() & Qt::LeftButton) {
-        setXRotation(m_xRot + 8 * dy);
-        setYRotation(m_yRot + 8 * dx);
-    } else if (event->buttons() & Qt::RightButton) {
-        setXRotation(m_xRot + 8 * dy);
-        setZRotation(m_zRot + 8 * dx);
+    if( event->buttons() & Qt::LeftButton ) {
+        setXRotation(m_xRot + VIEW_ROTATE_SPEED * dy);
+        setYRotation(m_yRot + VIEW_ROTATE_SPEED * dx);
     }
+    
+    if( event->buttons() & Qt::RightButton ) {
+        setZCamPos(m_zCamPos + VIEW_DOLLY_SPEED * (dx+dy));
+    }
+
     m_lastPos = event->pos();
 }
