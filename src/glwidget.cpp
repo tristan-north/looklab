@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <cmath>
 #include <qnamespace.h>
+#include <qvector.h>
 
 float VIEW_ROTATE_SPEED = 0.2f;
 float VIEW_DOLLY_SPEED = 0.01f;
@@ -125,6 +126,9 @@ void GLWidget::setZCamPos(float zPos)
 void GLWidget::initializeGL()
 {
     initializeOpenGLFunctions();
+
+    glEnable(GL_DEPTH_TEST);  
+
     qInfo() << "Vendor: " << reinterpret_cast<const char*>(glGetString(GL_VENDOR));
     qInfo() << "Renderer: " << reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     qInfo() << "Version: " << reinterpret_cast<const char*>(glGetString(GL_VERSION));
@@ -137,41 +141,80 @@ void GLWidget::initializeGL()
 
     m_MVPMatrixLoc = glGetUniformLocation(m_program, "u_MVP");
 
-    float positions[24] = {
-       -0.5f,  0.0f,  0.5f,
-        0.5f,  0.0f,  0.5f,
-        0.5f,  1.0f,  0.5f,
-       -0.5f,  1.0f,  0.5f,
+    QVector3D positions[8] = {
+        {-0.5f,  0.0f,  0.5f},
+        {0.5f,  0.0f,  0.5f},
+        {0.5f,  1.0f,  0.5f},
+        {-0.5f,  1.0f,  0.5f},
 
-       -0.5f,  0.0f, -0.5f,
-        0.5f,  0.0f, -0.5f,
-        0.5f,  1.0f, -0.5f,
-       -0.5f,  1.0f, -0.5f
+        {-0.5f,  0.0f, -0.5f},
+        {0.5f,  0.0f, -0.5f},
+        {0.5f,  1.0f, -0.5f},
+        {-0.5f,  1.0f, -0.5f}
     };
 
-    uint indices[48] = {
-        0, 1, 2, 2, 3, 0,
-        1, 2, 5, 5, 2, 6,
-        4, 5, 6, 6, 7, 4,
-        7, 4, 3, 3, 4, 0,
-        5, 4, 0, 0, 1, 0,
-        3, 2, 6, 6, 7, 3
+    struct tri {
+        uint v1;
+        uint v2;
+        uint v3;
     };
+
+    tri tris[16] = {
+        {0, 1, 2}, {2, 3, 0},
+        {1, 5, 6}, {6, 2, 1},
+        {5, 4, 7}, {7, 6, 5},
+        {4, 0, 3}, {3, 7, 4},
+        {5, 0, 4}, {0, 5, 1},
+        {3, 2, 6}, {6, 7, 3}
+    };
+
+    QVector3D normals[8];
+    // For each vertex
+    for(uint i=0; i<8; i++) {
+        QVector3D n = {0.0f, 0.0f, 0.0f};
+        // Loop through all tris to find any tris sharing this vertex
+        uint numConnectedTris = 0;
+        for(uint j=0; j<16; j++) {
+            // Check if tri contains the current vertex i
+            if( tris[j].v1 == i || tris[j].v2 == i || tris[j].v3 == i ) {
+                QVector3D p1(positions[tris[j].v1]);
+                QVector3D p2(positions[tris[j].v2]);
+                QVector3D p3(positions[tris[j].v3]);
+
+                QVector3D triN = QVector3D::crossProduct(p1 - p2, p1 - p3);
+                triN.normalize();
+
+                n += triN;
+                numConnectedTris += 1;
+            }
+        }
+        
+        n = n/numConnectedTris;
+        n.normalize();
+        normals[i] = n;
+    }
 
     glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
 
-    uint buffer;
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), positions, GL_STATIC_DRAW);
+    uint posBuffer;
+    glGenBuffers(1, &posBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, posBuffer);
+    glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(QVector3D), positions, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, 0);
 
-    uint ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 48 * sizeof(uint), indices, GL_STATIC_DRAW);
+    uint normalsBuffer;
+    glGenBuffers(1, &normalsBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normalsBuffer);
+    glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(QVector3D), normals, GL_STATIC_DRAW);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(1);
+
+    uint indexBuffer;
+    glGenBuffers(1, &indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(uint), tris, GL_STATIC_DRAW);
 
     printGlErrors("init");
 }
@@ -179,7 +222,7 @@ void GLWidget::initializeGL()
 
 void GLWidget::paintGL()
 {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     printGlErrors("paintGL start");
 
     QMatrix4x4 mvpMatrix;
