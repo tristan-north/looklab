@@ -1,9 +1,9 @@
 HEADERS       = src/glwidget.h \
-                src/geo.h \
+                src/mesh.h \
                 src/mainwindow.h
 
 SOURCES       = src/glwidget.cpp \
-                src/geo.cpp \
+                src/mesh.cpp \
                 src/main.cpp \
                 src/mainwindow.cpp
                 

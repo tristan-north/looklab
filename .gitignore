@@ -4,3 +4,4 @@ moc_*
 .qmake.stash
 build/
 .cache
+testGeo

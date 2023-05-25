@@ -1,5 +1,6 @@
 #include "glwidget.h"
 #include "shaders.h"
+#include "mesh.h"
 #include <GL/gl.h>
 #include <QMouseEvent>
 #include <QOpenGLShaderProgram>
@@ -141,17 +142,19 @@ void GLWidget::initializeGL()
 
     m_MVPMatrixLoc = glGetUniformLocation(m_program, "u_MVP");
 
-    QVector3D positions[8] = {
-        {-0.5f,  0.0f,  0.5f},
-        {0.5f,  0.0f,  0.5f},
-        {0.5f,  1.0f,  0.5f},
-        {-0.5f,  1.0f,  0.5f},
+    Mesh mesh("../testGeo/testCube3.abc");
 
-        {-0.5f,  0.0f, -0.5f},
-        {0.5f,  0.0f, -0.5f},
-        {0.5f,  1.0f, -0.5f},
-        {-0.5f,  1.0f, -0.5f}
-    };
+    // QVector3D positions[8] = {
+    //     {-0.5f,  0.0f,  0.5f},
+    //     {0.5f,  0.0f,  0.5f},
+    //     {0.5f,  1.0f,  0.5f},
+    //     {-0.5f,  1.0f,  0.5f},
+    //
+    //     {-0.5f,  0.0f, -0.5f},
+    //     {0.5f,  0.0f, -0.5f},
+    //     {0.5f,  1.0f, -0.5f},
+    //     {-0.5f,  1.0f, -0.5f}
+    // };
 
     struct tri {
         uint v1;
@@ -159,7 +162,7 @@ void GLWidget::initializeGL()
         uint v3;
     };
 
-    tri tris[16] = {
+    tri tris[12] = {
         {0, 1, 2}, {2, 3, 0},
         {1, 5, 6}, {6, 2, 1},
         {5, 4, 7}, {7, 6, 5},
@@ -174,12 +177,12 @@ void GLWidget::initializeGL()
         QVector3D n = {0.0f, 0.0f, 0.0f};
         // Loop through all tris to find any tris sharing this vertex
         uint numConnectedTris = 0;
-        for(uint j=0; j<16; j++) {
+        for(uint j=0; j<12; j++) {
             // Check if tri contains the current vertex i
             if( tris[j].v1 == i || tris[j].v2 == i || tris[j].v3 == i ) {
-                QVector3D p1(positions[tris[j].v1]);
-                QVector3D p2(positions[tris[j].v2]);
-                QVector3D p3(positions[tris[j].v3]);
+                QVector3D p1(mesh.m_positions[tris[j].v1]);
+                QVector3D p2(mesh.m_positions[tris[j].v2]);
+                QVector3D p3(mesh.m_positions[tris[j].v3]);
 
                 QVector3D triN = QVector3D::crossProduct(p1 - p2, p1 - p3);
                 triN.normalize();
@@ -200,7 +203,7 @@ void GLWidget::initializeGL()
     uint posBuffer;
     glGenBuffers(1, &posBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, posBuffer);
-    glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(QVector3D), positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(QVector3D), mesh.m_positions, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(0);
 

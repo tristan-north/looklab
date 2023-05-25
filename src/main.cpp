@@ -5,13 +5,9 @@
 #include "glwidget.h"
 #include "mainwindow.h"
 
-#include "geo.h"
 
 int main(int argc, char *argv[])
 {
-
-    Example1_MeshIn();
-
     QSurfaceFormat fmt;
     // fmt.setDepthBufferSize(24);
     fmt.setVersion(3, 3);
