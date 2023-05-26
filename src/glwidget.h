@@ -3,6 +3,7 @@
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QMatrix4x4>
+#include <QElapsedTimer>
 
 
 class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
@@ -36,10 +37,12 @@ private:
     float m_zRot = 0;
     float m_zCamPos = -4.0f;
     QPoint m_lastPos;
+    uint m_numTris = 0;
     uint m_program = 0;
     uint m_vao = 0;
     uint m_MVPMatrixLoc = 0;
     QMatrix4x4 m_proj;
     QMatrix4x4 m_camera;
     QMatrix4x4 m_world;
+    QElapsedTimer m_frameTimer;
 };

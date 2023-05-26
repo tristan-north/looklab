@@ -53,7 +53,7 @@ Mesh::Mesh(const char* filepath)
         
         // Get indices
         m_numIndices = m_meshSampler->getFaceIndices()->size();
-        std::cout << "Num indices in mesh: " << m_numIndices << "\n";
+        std::cout << "Num triangles in mesh: " << m_numIndices/3 << "\n";
         const int* indices = m_meshSampler->getFaceIndices()->get();
         m_indices = reinterpret_cast<const uint*>(indices);
         // for(size_t i=0; i<size; i++)

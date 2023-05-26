@@ -1,1 +1,6 @@
-Swap from using glDrawArrays to glDrawElements which uses an index buffer to save memory.
+o Check alembics with ngons etc
+o Do frame render time counter
+o Support abc hierachies more than just /obj/shape
+o Do headlight lighting
+
+x Optimise normal computation (takes 12s for buddha)
