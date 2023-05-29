@@ -14,12 +14,9 @@ Mesh::Mesh(const char* filepath)
     // IArchive archive( Alembic::AbcCoreOgawa::ReadArchive(), filepath );
     std::cout << "Reading: " << m_archive->getName() << std::endl;
 
-    std::cout << "Traversing archive for elements\n";
-
     IObject rootObj = m_archive->getTop();
     uint numChildren = rootObj.getNumChildren();
     std::cout << "Root has " << numChildren << " children.\n";
-    std::cout << "Root name: " << rootObj.getFullName() << "\n";
 
     std::string childName1 = rootObj.getChildHeader(0).getName();
     std::cout << "Child1: " << childName1 << "\n";

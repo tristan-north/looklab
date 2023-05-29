@@ -13,7 +13,6 @@ int main(int argc, char *argv[])
     fmt.setVersion(3, 3);
     // fmt.setSamples(4);
     fmt.setProfile(QSurfaceFormat::CoreProfile);
-
     QSurfaceFormat::setDefaultFormat(fmt);
 
     QApplication app(argc, argv);
