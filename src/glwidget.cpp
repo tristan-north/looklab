@@ -7,6 +7,7 @@
 #include <QCoreApplication>
 #include <QGuiApplication>
 #include <QTimer>
+#include <QApplication>
 #include <QElapsedTimer>
 #include <QLabel>
 #include <cmath>
@@ -136,6 +137,7 @@ void GLWidget::initializeGL()
 
     m_program = createProgram();
 
+    //Mesh mesh("../testGeo/testCube3.abc");
     Mesh mesh("../testGeo/pika_kakashi.abc");
     m_numTris = mesh.m_numIndices / 3;
 
@@ -166,12 +168,12 @@ void GLWidget::initializeGL()
 
     // Test of sending float array to shaders
     // Even tho we only care about 3D, openGL will pad the ubo as a vec4
-    QVector4D strokes[] = { {0.5, 1.0, 0.5, 0.0} };
+    QVector4D strokes[50];
     GLuint strokeBuffer;
     glGenBuffers(1, &strokeBuffer);
     glBindBuffer(GL_UNIFORM_BUFFER, strokeBuffer);
-    glBufferData(GL_UNIFORM_BUFFER, 4 * sizeof(float), strokes, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, strokeBuffer);
+    glBufferData(GL_UNIFORM_BUFFER, MAX_STOKE_POINTS * sizeof(QVector4D), NULL, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, strokeBuffer);  // Bind stroke buffer to uniform buffer location 0
 
     printGlErrors("init");
 }
@@ -190,28 +192,31 @@ void GLWidget::paintGL()
     glUniformMatrix4fv(m_viewMatrixLoc, 1, GL_FALSE, m_view.constData());
     glUniformMatrix4fv(m_projMatrixLoc, 1, GL_FALSE, m_proj.constData());
 
-    // *********
-    // Cursor world position testing
-    // Clamp mouse pos between 0 and window width/height
-    GLint x = m_lastMousePos.x() < 0 ? 0 : m_lastMousePos.x();
-    x = x > width() ? width() : x;
-    GLint y = m_lastMousePos.y() < 0 ? 0 : m_lastMousePos.y();
-    y = y > height() ? height() : y;
-    y = height() - y - 1; // Qt and OpenGL have different 0,0 corners
-    float depth;
-    glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+    // If drawing a stroke
+    if (QApplication::mouseButtons() == Qt::LeftButton && QApplication::keyboardModifiers() == Qt::NoModifier) { // == means only the left button no other buttons
+        QPoint mousePos = mapFromGlobal(cursor().pos());
+        
+        // Clamp mouse pos between 0 and window width/height
+        GLint x = mousePos.x() < 0 ? 0 : mousePos.x();
+        x = x > width() ? width() : x;
+        GLint y = mousePos.y() < 0 ? 0 : mousePos.y();
+        y = y > height() ? height() : y;
+        y = height() - y - 1; // Qt and OpenGL have different 0,0 corners
+        float depth;
+        glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 
-    QVector3D worldPosition(x, y, depth);
-    worldPosition = worldPosition.unproject(m_view, m_proj, QRect(0, 0, width(), height()));
+        QVector3D worldPosition(x, y, depth);
+        worldPosition = worldPosition.unproject(m_view, m_proj, QRect(0, 0, width(), height()));
 
-    QVector4D strokes[1];
-    strokes[0].setX(worldPosition.x());
-    strokes[0].setY(worldPosition.y());
-    strokes[0].setZ(worldPosition.z());
-    glBufferData(GL_UNIFORM_BUFFER, 4 * sizeof(float), strokes, GL_DYNAMIC_DRAW);
+        strokePositionsAndRadius.reserve(MAX_STOKE_POINTS);
+        if(strokePositionsAndRadius.size() < MAX_STOKE_POINTS)
+            strokePositionsAndRadius.push_back(QVector4D(worldPosition, 1.0f));
 
-    // qInfo() << worldPosition;
-    // ******
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, MAX_STOKE_POINTS * sizeof(QVector4D), strokePositionsAndRadius.data());
+        printGlErrors("Update Stroke Buffer");
+
+        qDebug() << strokePositionsAndRadius.size();
+    }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     printGlErrors("paintGL start");
@@ -243,7 +248,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event)
     int dx = event->x() - m_lastMousePos.x();
     int dy = event->y() - m_lastMousePos.y();
 
-    if ((event->buttons() & Qt::LeftButton) &&
+    // Rotate view
+    if ((event->buttons() == Qt::LeftButton) &&
         QGuiApplication::keyboardModifiers() == Qt::AltModifier) {
         m_xRot += VIEW_ROTATE_SPEED * dy;
         qNormalizeAngle(m_xRot);
@@ -251,11 +257,13 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event)
         qNormalizeAngle(m_yRot);
     }
 
-    if (event->buttons() & Qt::RightButton) {
+    // Dolly view
+    else if (event->buttons() == Qt::RightButton) {
         m_camPos.setZ(m_camPos.z() + VIEW_DOLLY_SPEED * (dx + dy));
     }
 
-    if (event->buttons() & Qt::MiddleButton) {
+    // Pan view
+    else if (event->buttons() == Qt::MiddleButton) {
         m_camPos.setX(m_camPos.x() + VIEW_PAN_SPEED * dx);
         m_camPos.setY(m_camPos.y() - VIEW_PAN_SPEED * dy);
     }

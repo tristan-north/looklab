@@ -7,6 +7,9 @@
 #include <QElapsedTimer>
 #include <QLabel>
 #include <qvector3d.h>
+#include <vector>
+
+static const int MAX_STOKE_POINTS = 2048;
 
 
 class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
@@ -38,8 +41,7 @@ private:
     float m_zRot = 0;
     QVector3D m_camPos = { 0.0f, -0.5f, -3.0f };
     QPoint m_lastMousePos;
-
-    QVector3D m_drawPt;
+    std::vector<QVector4D> strokePositionsAndRadius;
 
     uint m_numTris = 0;
     uint m_program = 0;

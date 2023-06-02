@@ -33,7 +33,7 @@ float fit(float value, float min1, float max1, float min2, float max2) {
 
 
 layout(std140) uniform strokesBlock {
-    vec3[] strokes;
+    vec4[1024] strokes;
 };
 
 in vec3 v_posCam;
@@ -50,11 +50,22 @@ void main()
     float ndotl = max(dot(normal, lightDir), 0.0);
 
     vec3 albedo = vec3(0.5, 0.5, 0.5);
-    float mask = distance(v_posWorld, strokes[0]);
-    mask = fit(mask, 0.03, 0.031, 1, 0.2);
-    mask = clamp(mask, 0.2, 1);
+
+    float mask = 0.0;
+    for( int i=0; i<2048; i++ ) {
+        if( strokes[i].w == 0.0)
+            break;
+
+        float dist = distance(v_posWorld, vec3(strokes[i].xyz));
+        if( dist < 0.03 )
+            mask += 0.3;
+    }
+    mask = clamp(mask, 0.2, 1.0);
+    
+
     FragColor = vec4(albedo * ndotl * mask, 1.0); 
 
+    // Gamma correction
     FragColor = vec4(pow(FragColor.rgb, vec3(1.0/2.2)), 1.0);
 }
 )";
