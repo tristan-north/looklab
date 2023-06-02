@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include <glwidget.h>
+#include "glwidget.h"
 #include <QKeyEvent>
 #include <QLabel>
 
@@ -9,7 +9,7 @@ MainWindow::MainWindow()
 
 }
 
-void MainWindow::keyPressEvent(QKeyEvent *event)
+void MainWindow::keyPressEvent(QKeyEvent* event)
 {
     if (event->key() == Qt::Key_Q)
     {

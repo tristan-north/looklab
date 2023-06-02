@@ -14,7 +14,7 @@ class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     Q_OBJECT
 
 public:
-    GLWidget(QWidget *parent = nullptr);
+    GLWidget(QWidget* parent = nullptr);
     ~GLWidget();
 
     QSize minimumSizeHint() const override;
@@ -24,8 +24,8 @@ protected:
     void initializeGL() override;
     void paintGL() override;
     void resizeGL(int width, int height) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
     uint createProgram();
@@ -36,7 +36,7 @@ private:
     float m_xRot = 0;
     float m_yRot = 0;
     float m_zRot = 0;
-    QVector3D m_camPos = {0.0f, -0.5f, -3.0f};
+    QVector3D m_camPos = { 0.0f, -0.5f, -3.0f };
     QPoint m_lastMousePos;
 
     QVector3D m_drawPt;

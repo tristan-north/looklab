@@ -25,7 +25,7 @@ float VIEW_FOV = 45.0;
 float VIEW_NEAR_CLIP = 0.1f;
 float VIEW_FAR_CLIP = 10.0f;
 
-GLWidget::GLWidget(QWidget *parent)
+GLWidget::GLWidget(QWidget* parent)
     : QOpenGLWidget(parent)
 {
     m_frameTimeLabel = new QLabel("", this);
@@ -47,7 +47,7 @@ GLWidget::~GLWidget()
 
 void GLWidget::printGlErrors(QString str)
 {
-    while(GLenum error = glGetError()) {
+    while (GLenum error = glGetError()) {
         qCritical() << "[OpenGL error] : " << str << " : " << error;
     }
 }
@@ -56,16 +56,16 @@ void GLWidget::printShaderCompilationStatus(uint id)
 {
     int result;
     glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-    if(result == GL_FALSE) {
+    if (result == GL_FALSE) {
         int length;
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)alloca(length*sizeof(char));
+        char* message = (char*)alloca(length * sizeof(char));
         glGetShaderInfoLog(id, length, &length, message);
 
         int type;
         glGetShaderiv(id, GL_SHADER_TYPE, &type);
         QString typeString = type == GL_VERTEX_SHADER ? "vertex" : "fragment";
-        qCritical() << typeString << "shader failed to compile"; 
+        qCritical() << typeString << "shader failed to compile";
         qCritical() << message;
     }
 }
@@ -112,7 +112,7 @@ QSize GLWidget::sizeHint() const
     return QSize(800, 800);
 }
 
-static void qNormalizeAngle(float &angle)
+static void qNormalizeAngle(float& angle)
 {
     angle = std::fmod(angle, 360.0f);
 }
@@ -121,7 +121,7 @@ void GLWidget::initializeGL()
 {
     initializeOpenGLFunctions();
 
-    glEnable(GL_DEPTH_TEST);  
+    glEnable(GL_DEPTH_TEST);
     // Enable backface culling
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -137,10 +137,10 @@ void GLWidget::initializeGL()
     m_program = createProgram();
 
     Mesh mesh("../testGeo/pika_kakashi.abc");
-    m_numTris = mesh.m_numIndices/3;
+    m_numTris = mesh.m_numIndices / 3;
 
-    QVector3D normals[mesh.m_numPositions];
-    computeNormals(&mesh, normals);
+    std::vector<QVector3D> normals(mesh.m_numPositions);
+    computeNormals(&mesh, normals.data());
 
     glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
@@ -155,7 +155,7 @@ void GLWidget::initializeGL()
     uint normalsBuffer;
     glGenBuffers(1, &normalsBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalsBuffer);
-    glBufferData(GL_ARRAY_BUFFER, mesh.m_numPositions * sizeof(QVector3D), normals, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, mesh.m_numPositions * sizeof(QVector3D), normals.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(1);
 
@@ -166,7 +166,7 @@ void GLWidget::initializeGL()
 
     // Test of sending float array to shaders
     // Even tho we only care about 3D, openGL will pad the ubo as a vec4
-    QVector4D strokes[] = {{0.5, 1.0, 0.5, 0.0}};
+    QVector4D strokes[] = { {0.5, 1.0, 0.5, 0.0} };
     GLuint strokeBuffer;
     glGenBuffers(1, &strokeBuffer);
     glBindBuffer(GL_UNIFORM_BUFFER, strokeBuffer);
@@ -199,8 +199,8 @@ void GLWidget::paintGL()
     y = y > height() ? height() : y;
     y = height() - y - 1; // Qt and OpenGL have different 0,0 corners
     float depth;
-    glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth); 
-    
+    glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+
     QVector3D worldPosition(x, y, depth);
     worldPosition = worldPosition.unproject(m_view, m_proj, QRect(0, 0, width(), height()));
 
@@ -216,11 +216,11 @@ void GLWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     printGlErrors("paintGL start");
 
-    glDrawElements(GL_TRIANGLES, m_numTris*3, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, m_numTris * 3, GL_UNSIGNED_INT, nullptr);
     printGlErrors("glDrawArrays");
 
     glFinish(); // This blocks until all gl commands have finished. Using for frame timing.
-    QString elapsed = QString::number(m_frameTimer.nsecsElapsed()/1000000.f, 'f', 2);
+    QString elapsed = QString::number(m_frameTimer.nsecsElapsed() / 1000000.f, 'f', 2);
     m_frameTimeLabel->setText(elapsed.append(" ms"));
 
 }
@@ -232,30 +232,30 @@ void GLWidget::resizeGL(int w, int h)
 
 }
 
-void GLWidget::mousePressEvent(QMouseEvent *event)
+void GLWidget::mousePressEvent(QMouseEvent* event)
 {
     m_lastMousePos = event->pos();
     update();
 }
 
-void GLWidget::mouseMoveEvent(QMouseEvent *event)
+void GLWidget::mouseMoveEvent(QMouseEvent* event)
 {
     int dx = event->x() - m_lastMousePos.x();
     int dy = event->y() - m_lastMousePos.y();
 
-    if( (event->buttons() & Qt::LeftButton) && 
-        QGuiApplication::keyboardModifiers() == Qt::AltModifier ) {
+    if ((event->buttons() & Qt::LeftButton) &&
+        QGuiApplication::keyboardModifiers() == Qt::AltModifier) {
         m_xRot += VIEW_ROTATE_SPEED * dy;
         qNormalizeAngle(m_xRot);
         m_yRot += VIEW_ROTATE_SPEED * dx;
         qNormalizeAngle(m_yRot);
     }
-    
-    if( event->buttons() & Qt::RightButton ) {
-        m_camPos.setZ(m_camPos.z() + VIEW_DOLLY_SPEED * (dx+dy));
+
+    if (event->buttons() & Qt::RightButton) {
+        m_camPos.setZ(m_camPos.z() + VIEW_DOLLY_SPEED * (dx + dy));
     }
 
-    if( event->buttons() & Qt::MiddleButton ) {
+    if (event->buttons() & Qt::MiddleButton) {
         m_camPos.setX(m_camPos.x() + VIEW_PAN_SPEED * dx);
         m_camPos.setY(m_camPos.y() - VIEW_PAN_SPEED * dy);
     }
@@ -277,7 +277,7 @@ void GLWidget::computeNormals(Mesh* mesh, QVector3D* normals)
 
     const tri* tris = reinterpret_cast<const tri*>(mesh->m_indices);
 
-    for (uint i=0; i<m_numTris; i++) {
+    for (uint i = 0; i < m_numTris; i++) {
 
         QVector3D v1 = mesh->m_positions[tris[i].v1] - mesh->m_positions[tris[i].v2];
         QVector3D v2 = mesh->m_positions[tris[i].v3] - mesh->m_positions[tris[i].v2];
@@ -292,10 +292,10 @@ void GLWidget::computeNormals(Mesh* mesh, QVector3D* normals)
     }
 
     // normalize the normals for each vertex
-    for (uint i=0; i<mesh->m_numPositions; ++i) {
+    for (uint i = 0; i < mesh->m_numPositions; ++i) {
         normals[i].normalize();
     }
 
     qInfo() << "Time to generate normals: " << timer.elapsed() << "ms";
-    
+
 }

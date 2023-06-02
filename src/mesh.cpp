@@ -21,23 +21,23 @@ Mesh::Mesh(const char* filepath)
     std::string childName1 = rootObj.getChildHeader(0).getName();
     std::cout << "Child1: " << childName1 << "\n";
     IObject child1(rootObj, childName1);
-    const MetaData &md = child1.getMetaData();
+    const MetaData& md = child1.getMetaData();
     std::cout << "Child1 metadata: " << md.serialize() << "\n";
 
     std::string childName2 = child1.getChildHeader(0).getName();
     std::cout << "Child2: " << childName2 << "\n";
     IObject child2(child1, childName2);
-    const MetaData &md2 = child2.getMetaData();
+    const MetaData& md2 = child2.getMetaData();
     std::cout << "Child2 metadata: " << md2.serialize() << "\n";
 
-    if( IPolyMeshSchema::matches( md2 ) || ISubDSchema::matches( md2 )) {
-        std::cout << "Found a mesh " << child2.getName()<<"\n"; 
+    if (IPolyMeshSchema::matches(md2) || ISubDSchema::matches(md2)) {
+        std::cout << "Found a mesh " << child2.getName() << "\n";
 
         IPolyMesh mesh(child1, child2.getName()); // First arg is parent object
         IPolyMeshSchema schema = mesh.getSchema();
 
         m_meshSampler = new IPolyMeshSchema::Sample;
-        schema.get( *m_meshSampler );
+        schema.get(*m_meshSampler);
 
         // Get positions
         m_numPositions = m_meshSampler->getPositions()->size();
@@ -47,10 +47,10 @@ Mesh::Mesh(const char* filepath)
         m_positions = reinterpret_cast<const QVector3D*>(positions);
         // for(size_t i=0; i<size; i++)
         //     std::cout << positions[i] << "\n";
-        
+
         // Get indices
         m_numIndices = m_meshSampler->getFaceIndices()->size();
-        std::cout << "Num triangles in mesh: " << m_numIndices/3 << "\n";
+        std::cout << "Num triangles in mesh: " << m_numIndices / 3 << "\n";
         const int* indices = m_meshSampler->getFaceIndices()->get();
         m_indices = reinterpret_cast<const uint*>(indices);
         // for(size_t i=0; i<size; i++)
@@ -63,4 +63,3 @@ Mesh::~Mesh()
     delete m_meshSampler;
     delete m_archive;
 }
-

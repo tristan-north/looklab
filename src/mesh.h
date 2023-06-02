@@ -6,7 +6,7 @@
 #include <QVector3D>
 #include <QList>
 
- namespace Alembic { 
+namespace Alembic {
     namespace Abc {
         namespace v12 {
             class IArchive;

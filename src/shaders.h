@@ -1,4 +1,4 @@
-static const char *vertexShaderSource = R"(
+static const char* vertexShaderSource = R"(
 #version 330 core
 
 uniform mat4 u_model;
@@ -24,7 +24,7 @@ void main()
 )";
 
 
-static const char *fragmentShaderSource = R"(
+static const char* fragmentShaderSource = R"(
 #version 330 core
 
 float fit(float value, float min1, float max1, float min2, float max2) {
