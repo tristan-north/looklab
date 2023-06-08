@@ -1,5 +1,4 @@
 #include "mesh.h"
-// #include <Alembic/AbcCoreAbstract/MetaData.h>
 #include <Alembic/Abc/IObject.h>
 #include <Alembic/AbcGeom/All.h>
 #include <Alembic/AbcCoreOgawa/All.h>
