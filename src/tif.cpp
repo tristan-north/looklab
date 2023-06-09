@@ -46,57 +46,47 @@ struct TifIFD
 };
 #pragma pack(pop) // Restore original struct packing
 
-struct ImageData
+static void createTestImage(std::vector<uint8_t>& imageData)
 {
-    ImageData(uint res)
-    {
-        pData = new uint8_t(res * res);
-    }
-
-    ~ImageData()
-    {
-        delete[] pData;
-    }
-
-    uint8_t *pData;
-};
-
-static void createTestImage(uint res, uint8_t* pImgData)
-{
-    for (int y = 0; y < res; ++y) {
-        for (int x = 0; x < res; ++x) {
-            pImgData[y * res + x] = 255;
-        }
+    for(int i=0; i<imageData.size(); ++i) {
+        if(i < imageData.size()/2)
+            imageData[i] = 25;
+        else
+            imageData[i] = 255;
     }
 }
 
-
+// Takes the full image and sets tileData to contain the pixels of the specified tile.
+static void getTileFromImageData(int tileIdx, int tileSize, std::vector<uint8_t>& tileData,
+                                 int imageRes, const std::vector<uint8_t>& imageData)
+{
+    int numTilesInRow = imageRes/tileSize;
+    int tileIdxX = tileIdx % numTilesInRow;
+    int tileIdxY = int(tileIdx / numTilesInRow);
+    int offsetToTile = tileSize * tileIdxX + tileSize*tileSize*numTilesInRow*tileIdxY;
+    for(int y=0; y<tileSize; ++y)  // For each line of pixels in the destination tile
+        memcpy(tileData.data() + y*tileSize, imageData.data() + offsetToTile + y*imageRes, tileSize);
+}
 
 void writeTif()
 {
-    const uint imageWidthLength = 512;
+    const uint imageWidthLength = 256;
     const uint tileSize = 64; // Rman expects 64 tile size
 
     assert(imageWidthLength % tileSize == 0 && "Image resolution doesn't divide by tile size.");
 
-//    ImageData imageData(imageWidthLength);
-//    createTestImage(imageWidthLength, imageData.pData);
+    std::vector<uint8_t> imageData(imageWidthLength * imageWidthLength);
+    createTestImage(imageData);
 
     const uint numTiles = (imageWidthLength / tileSize) * (imageWidthLength / tileSize);
-
-    uint8_t tileData[tileSize * tileSize];
-    for (int i = 0; i < tileSize * tileSize; i++) {
-        tileData[i] = i / float(tileSize * tileSize) * 255;
-    }
 
     uint16_t tileByteCount[numTiles];
     for (uint16_t &i: tileByteCount)
         i = tileSize * tileSize;
 
-    // TODO: This will need to be unique per tile
     uint32_t tileOffsets[numTiles];
-    for (int i = 0; i < numTiles; i++) {
-        tileOffsets[i] = sizeof(TifHead) + sizeof(TifIFD) + sizeof(tileOffsets) + sizeof(tileByteCount); // Point to the data itself
+    for (int i = 0; i < numTiles; ++i) {
+        tileOffsets[i] = sizeof(TifHead) + sizeof(TifIFD) + sizeof(tileOffsets) + sizeof(tileByteCount) + i*tileSize*tileSize; // Point to the data itself
     }
 
 
@@ -190,7 +180,11 @@ void writeTif()
         file.write(reinterpret_cast<char*>(&tileByteCount), sizeof(tileByteCount));
     }
 
-    file.write(reinterpret_cast<char*>(tileData), sizeof(tileData)); // TODO: Write tiles properly
+    std::vector<uint8_t> tileData(tileSize*tileSize);
+    for(int i=0; i<numTiles; ++i) {
+        getTileFromImageData(i, tileSize, tileData, imageWidthLength, imageData);
+        file.write(reinterpret_cast<char*>(tileData.data()), tileData.size());
+    }
 
     file.close();
 }
