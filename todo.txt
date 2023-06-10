@@ -1,6 +1,7 @@
+o Mipmap the textures
+o Add compression to texture
 o Automatically set near and far clip to get max res out of depth buffer
 o Check alembics with ngons etc
 o Support abc hierachies more than just /obj/shape
-o Try rendering to larger buffer and resampling down to get multisampling
 o Adjust cam pan speed based on where you click the model like in houdini
 o F key to frame geo

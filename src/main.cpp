@@ -8,8 +8,12 @@
 
 int main(int argc, char* argv[])
 {
-    writeTif();
-    return 0;
+//    const int res = 512;
+//    std::vector<unsigned char> imageData(res * res);
+//    createTestImage(imageData, res);
+//    writeTif(imageData, res);
+//    return 0;
+
     QSurfaceFormat fmt;
     // fmt.setDepthBufferSize(24);
     fmt.setVersion(3, 3);

@@ -1,12 +1,12 @@
 #pragma once
 
 #include "mesh.h"
+
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QMatrix4x4>
 #include <QElapsedTimer>
 #include <QLabel>
-#include <qvector3d.h>
 #include <vector>
 
 static const int MAX_STOKE_POINTS = 2048;
@@ -29,6 +29,7 @@ protected:
     void resizeGL(int width, int height) override;
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
 
 private:
     uint createProgram();

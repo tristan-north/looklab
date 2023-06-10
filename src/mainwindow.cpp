@@ -15,4 +15,6 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     {
         close();
     }
+    else
+        QWidget::keyPressEvent(event);
 }

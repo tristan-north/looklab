@@ -1,23 +1,12 @@
 #include "glwidget.h"
 #include "shaders.h"
-#include "mesh.h"
-#include <GL/gl.h>
+#include "tif.h"
+
 #include <QMouseEvent>
 #include <QOpenGLShaderProgram>
-#include <QCoreApplication>
 #include <QGuiApplication>
 #include <QTimer>
 #include <QApplication>
-#include <QElapsedTimer>
-#include <QLabel>
-#include <cmath>
-#include <qelapsedtimer.h>
-#include <qglobal.h>
-#include <qlabel.h>
-#include <qnamespace.h>
-#include <qopenglext.h>
-#include <qvector.h>
-#include <qvector3d.h>
 
 float VIEW_ROTATE_SPEED = 0.2f;
 float VIEW_DOLLY_SPEED = 0.01f;
@@ -33,6 +22,10 @@ GLWidget::GLWidget(QWidget* parent)
     m_frameTimeLabel->setStyleSheet("QLabel { color : white; }");
 
     setUpdateBehavior(QOpenGLWidget::PartialUpdate); // Tell Qt not to clear the buffers
+
+    setFixedSize(1024, 1024);
+
+    setFocus();  // Needed this to recieve key press events
 }
 
 GLWidget::~GLWidget()
@@ -110,7 +103,7 @@ QSize GLWidget::minimumSizeHint() const
 
 QSize GLWidget::sizeHint() const
 {
-    return QSize(800, 800);
+    return QSize(1024, 1024);
 }
 
 static void qNormalizeAngle(float& angle)
@@ -210,7 +203,7 @@ void GLWidget::paintGL()
 
         strokePositionsAndRadius.reserve(MAX_STOKE_POINTS);
         if(strokePositionsAndRadius.size() < MAX_STOKE_POINTS)
-            strokePositionsAndRadius.push_back(QVector4D(worldPosition, 1.0f));
+            strokePositionsAndRadius.emplace_back(worldPosition, 1.0f);
 
         glBufferSubData(GL_UNIFORM_BUFFER, 0, MAX_STOKE_POINTS * sizeof(QVector4D), strokePositionsAndRadius.data());
         printGlErrors("Update Stroke Buffer");
@@ -272,6 +265,21 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event)
     m_lastMousePos = event->pos();
 }
 
+void GLWidget::keyPressEvent(QKeyEvent *event) {
+    if (event->key() == Qt::Key_W)
+    {
+        std::vector<unsigned char> pixels(width()*height());
+        int a = pixels.size();
+        int w = width();
+        int h = height();
+        glReadPixels(0, 0, width(), height(), GL_RED, GL_UNSIGNED_BYTE, pixels.data());
+        assert(width() == height() && "Image must be square.");
+        writeTif(pixels, width());
+    }
+    else
+        QWidget::keyPressEvent(event);
+}
+
 void GLWidget::computeNormals(Mesh* mesh, QVector3D* normals)
 {
     struct tri {
@@ -307,3 +315,4 @@ void GLWidget::computeNormals(Mesh* mesh, QVector3D* normals)
     qInfo() << "Time to generate normals: " << timer.elapsed() << "ms";
 
 }
+

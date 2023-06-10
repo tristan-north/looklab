@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <QDebug>
 #include <fstream>
+#include <QElapsedTimer>
 
 // Tif format ref https://www.fileformat.info/format/tiff/egff.htm
 // More info about the tags https://www.awaresystems.be/imaging/tiff/tifftags/search.html
@@ -46,39 +47,49 @@ struct TifIFD
 };
 #pragma pack(pop) // Restore original struct packing
 
-static void createTestImage(std::vector<uint8_t>& imageData)
-{
-    for(int i=0; i<imageData.size(); ++i) {
-        if(i < imageData.size()/2)
-            imageData[i] = 25;
-        else
-            imageData[i] = 255;
+#include <cmath>  // For sqrt
+
+// Generate a circle
+void createTestImage(vector<unsigned char> &imageData, int res) {
+    for(int y=0; y<res; ++y) {
+        for(int x=0; x<res; ++x) {
+            float u = float(x)/res;
+            float v = float(y)/res;
+            u -= .5;
+            v -= .5;
+            float dist = sqrt(u*u + v*v);
+            if(dist < 0.3)
+                imageData[y*res + x] = 255;
+            else
+                imageData[y*res + x] = 0;
+        }
     }
 }
 
 // Takes the full image and sets tileData to contain the pixels of the specified tile.
-static void getTileFromImageData(int tileIdx, int tileSize, std::vector<uint8_t>& tileData,
-                                 int imageRes, const std::vector<uint8_t>& imageData)
+static void getTileFromImageData(int tileIdx, int tileSize, std::vector<unsigned char>& tileData,
+                                 int imageRes, const std::vector<unsigned char>& imageData )
 {
     int numTilesInRow = imageRes/tileSize;
     int tileIdxX = tileIdx % numTilesInRow;
     int tileIdxY = int(tileIdx / numTilesInRow);
+    tileIdxY = numTilesInRow -1 - tileIdxY;  // Flip Y since images from OpenGL go bot to top
     int offsetToTile = tileSize * tileIdxX + tileSize*tileSize*numTilesInRow*tileIdxY;
-    for(int y=0; y<tileSize; ++y)  // For each line of pixels in the destination tile
-        memcpy(tileData.data() + y*tileSize, imageData.data() + offsetToTile + y*imageRes, tileSize);
+    for(int y=0; y<tileSize; y++)  // For each line of pixels in the destination tile
+        memcpy(tileData.data() + y*tileSize, imageData.data() + offsetToTile + (tileSize-1-y)*imageRes, tileSize);
+
 }
 
-void writeTif()
+void writeTif(const std::vector<unsigned char> pixels, const int res)
 {
-    const uint imageWidthLength = 256;
     const uint tileSize = 64; // Rman expects 64 tile size
 
-    assert(imageWidthLength % tileSize == 0 && "Image resolution doesn't divide by tile size.");
+    assert(res % tileSize == 0 && "Image resolution doesn't divide by tile size.");
 
-    std::vector<uint8_t> imageData(imageWidthLength * imageWidthLength);
-    createTestImage(imageData);
+    QElapsedTimer timer;
+    timer.start();
 
-    const uint numTiles = (imageWidthLength / tileSize) * (imageWidthLength / tileSize);
+    const uint numTiles = (res / tileSize) * (res / tileSize);
 
     uint16_t tileByteCount[numTiles];
     for (uint16_t &i: tileByteCount)
@@ -104,13 +115,13 @@ void writeTif()
     tifIFD.TagList[0].TagId = 256;
     tifIFD.TagList[0].DataType = SHORT;
     tifIFD.TagList[0].DataCount = 1;
-    tifIFD.TagList[0].DataOffset = imageWidthLength;
+    tifIFD.TagList[0].DataOffset = res;
 
     // Length Tag
     tifIFD.TagList[1].TagId = 257;
     tifIFD.TagList[1].DataType = SHORT;
     tifIFD.TagList[1].DataCount = 1;
-    tifIFD.TagList[1].DataOffset = imageWidthLength;
+    tifIFD.TagList[1].DataOffset = res;
 
     // Bits per sample Tag
     tifIFD.TagList[2].TagId = 258;
@@ -180,12 +191,15 @@ void writeTif()
         file.write(reinterpret_cast<char*>(&tileByteCount), sizeof(tileByteCount));
     }
 
-    std::vector<uint8_t> tileData(tileSize*tileSize);
+    std::vector<unsigned char> tileData(tileSize*tileSize);
     for(int i=0; i<numTiles; ++i) {
-        getTileFromImageData(i, tileSize, tileData, imageWidthLength, imageData);
+        getTileFromImageData(i, tileSize, tileData, res, pixels);
         file.write(reinterpret_cast<char*>(tileData.data()), tileData.size());
     }
 
     file.close();
+
+    QString elapsed = QString::number(timer.nsecsElapsed() / 1000000., 'f', 1);
+    qInfo().noquote() << "Tif write time: " <<  elapsed << " ms";
 }
 
