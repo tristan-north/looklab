@@ -3,14 +3,14 @@
 #include <Alembic/AbcGeom/All.h>
 #include <Alembic/AbcCoreOgawa/All.h>
 #include <string>
+#include <QElapsedTimer>
+#include <QDebug>
 
 using namespace Alembic::AbcGeom;
 
 Mesh::Mesh(const char* filepath)
 {
-    // std::string path = "../testGeo/testCube3.abc";
     m_archive = new IArchive(Alembic::AbcCoreOgawa::ReadArchive(), filepath);
-    // IArchive archive( Alembic::AbcCoreOgawa::ReadArchive(), filepath );
     std::cout << "Reading: " << m_archive->getName() << std::endl;
 
     IObject rootObj = m_archive->getTop();
@@ -39,21 +39,51 @@ Mesh::Mesh(const char* filepath)
         schema.get(*m_meshSampler);
 
         // Get positions
-        m_numPositions = m_meshSampler->getPositions()->size();
-        std::cout << "Num positions in mesh: " << m_numPositions << "\n";
-
-        const V3f* positions = m_meshSampler->getPositions()->get();
+        const V3f *positions = m_meshSampler->getPositions()->get();
         m_positions = reinterpret_cast<const QVector3D*>(positions);
-        // for(size_t i=0; i<size; i++)
-        //     std::cout << positions[i] << "\n";
 
-        // Get indices
+        // Get position indices
         m_numIndices = m_meshSampler->getFaceIndices()->size();
         std::cout << "Num triangles in mesh: " << m_numIndices / 3 << "\n";
-        const int* indices = m_meshSampler->getFaceIndices()->get();
-        m_indices = reinterpret_cast<const uint*>(indices);
-        // for(size_t i=0; i<size; i++)
-        //     std::cout << indices[i] << "\n";
+        const int *indices = m_meshSampler->getFaceIndices()->get();
+        const uint *posIndices = reinterpret_cast<const uint*>(indices);
+
+        // Get UVs
+        auto uvsParam = schema.getUVsParam();
+        if (!uvsParam.valid()) {
+            std::cerr << "Mesh has no UVs." << "\n";
+            return;
+        }
+//        auto indexedUVs = new auto(uvsParam.getIndexedValue());
+        Alembic::AbcGeom::v12::ITypedGeomParam<V2fTPTraits>::Sample *m_uvSampler = new auto(uvsParam.getIndexedValue());
+        std::cout << "Num UVs in mesh: " << m_uvSampler->getVals()->size() << "\n";
+
+        // Since assuming that there are more unique uv vals than positions
+        // m_numPositions will actually be the number of uv vals, and then
+        // we make a new positions array to conform to the uv indices.
+        m_numPositions = m_uvSampler->getVals()->size();
+        assert(m_numPositions >= m_meshSampler->getPositions()->size() &&
+        "Assuming there are more UV values than Positions.");
+
+        const unsigned int *uvIndices = m_uvSampler->getIndices()->get();
+        size_t uvIndicesSize = m_uvSampler->getIndices()->size();
+
+        QElapsedTimer timer;
+        timer.start();
+        // Need to create new position and position indices array since there may be vertices which
+        // share the same position but have different UVs and OpenGL only supports one index for all
+        // vertex attributes.
+        auto newPositions = new std::vector<V3f>(m_uvSampler->getVals()->size());
+        for(int i=0; i<uvIndicesSize; ++i) {
+            QVector3D P = m_positions[posIndices[i]];
+            (*newPositions)[uvIndices[i]] = P;
+        }
+        m_positions = (QVector3D*)newPositions->data();
+        m_indices = uvIndices;
+
+        QString elapsed = QString::number(timer.nsecsElapsed() / 1000000., 'f', 1);
+        qInfo().noquote() << "Create new position array time: " <<  elapsed << " ms";
+
     }
 }
 
@@ -61,4 +91,6 @@ Mesh::~Mesh()
 {
     delete m_meshSampler;
     delete m_archive;
+    delete m_positions;
+//    delete m_uvSampler; // This causes crash, double free?
 }

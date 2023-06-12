@@ -40,7 +40,7 @@ private:
     float m_xRot = 0;
     float m_yRot = 0;
     float m_zRot = 0;
-    QVector3D m_camPos = { 0.0f, -0.5f, -3.0f };
+    QVector3D m_camPos = { 0.0f, -0.5f, -2.0f };
     QPoint m_lastMousePos;
     std::vector<QVector4D> strokePositionsAndRadius;
 

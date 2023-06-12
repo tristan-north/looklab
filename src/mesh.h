@@ -15,7 +15,6 @@ namespace Alembic {
     namespace AbcGeom {
         namespace v12 {
             class IPolyMeshSchema;
-            class Sample;
         }
     }
 }
@@ -26,13 +25,16 @@ public:
     Mesh(const char* filepath);
     ~Mesh();
 
-    uint m_numPositions;
+    uint m_numPositions = {};
     const QVector3D* m_positions;
 
-    uint m_numIndices;
-    const uint* m_indices;
+    const QVector2D* m_UVs;
+
+    uint m_numIndices = {};
+    const uint* m_indices = nullptr;
 
 private:
     Alembic::Abc::v12::IArchive* m_archive = 0;
     Alembic::AbcGeom::v12::IPolyMeshSchema::Sample* m_meshSampler;
+    Alembic::AbcGeom::v12::ITypedGeomParam<Alembic::Abc::V2fTPTraits>::Sample* m_uvSampler;
 };

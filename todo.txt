@@ -1,3 +1,12 @@
+Texture Bake Steps
+o Get uv data from alembic
+o Render a red texture on 'W'
+o Create new shaders for the UV render pass
+o Create geo with UDIMs
+o Look into using multiple render targets to render all the UDIMs
+
+
+o Clean up Alembic reading, especially UVs. May be leaking memory.
 o Mipmap the textures
 o Add compression to texture
 o Automatically set near and far clip to get max res out of depth buffer

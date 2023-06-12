@@ -131,7 +131,9 @@ void GLWidget::initializeGL()
     m_program = createProgram();
 
     //Mesh mesh("../testGeo/testCube3.abc");
-    Mesh mesh("../testGeo/pika_kakashi.abc");
+//    Mesh mesh("../testGeo/pika_kakashi.abc");
+    Mesh mesh("../testGeo/buddha_light_autouvs.abc");
+//    Mesh mesh("../testGeo/plane_uvs.abc");
     m_numTris = mesh.m_numIndices / 3;
 
     std::vector<QVector3D> normals(mesh.m_numPositions);
@@ -208,7 +210,8 @@ void GLWidget::paintGL()
         glBufferSubData(GL_UNIFORM_BUFFER, 0, MAX_STOKE_POINTS * sizeof(QVector4D), strokePositionsAndRadius.data());
         printGlErrors("Update Stroke Buffer");
 
-        qDebug() << strokePositionsAndRadius.size();
+        if(strokePositionsAndRadius.size() % 100 == 0)
+            qDebug() << "Num stroke points: " << strokePositionsAndRadius.size();
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -269,9 +272,6 @@ void GLWidget::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_W)
     {
         std::vector<unsigned char> pixels(width()*height());
-        int a = pixels.size();
-        int w = width();
-        int h = height();
         glReadPixels(0, 0, width(), height(), GL_RED, GL_UNSIGNED_BYTE, pixels.data());
         assert(width() == height() && "Image must be square.");
         writeTif(pixels, width());
