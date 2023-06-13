@@ -132,8 +132,8 @@ void GLWidget::initializeGL()
 
     //Mesh mesh("../testGeo/testCube3.abc");
 //    Mesh mesh("../testGeo/pika_kakashi.abc");
-    Mesh mesh("../testGeo/buddha_light_autouvs.abc");
-//    Mesh mesh("../testGeo/plane_uvs.abc");
+//    Mesh mesh("../testGeo/buddha_light_autouvs.abc");
+    Mesh mesh("../testGeo/plane_uvs.abc");
     m_numTris = mesh.m_numIndices / 3;
 
     std::vector<QVector3D> normals(mesh.m_numPositions);

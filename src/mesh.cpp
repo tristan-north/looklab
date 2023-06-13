@@ -5,6 +5,7 @@
 #include <string>
 #include <QElapsedTimer>
 #include <QDebug>
+#include <QVector2D>
 
 using namespace Alembic::AbcGeom;
 
@@ -29,6 +30,56 @@ Mesh::Mesh(const char* filepath)
     const MetaData& md2 = child2.getMetaData();
     std::cout << "Child2 metadata: " << md2.serialize() << "\n";
 
+    if( !(IPolyMeshSchema::matches(md2) || ISubDSchema::matches(md2)) ) {
+        std::cout << "No poly or subd mesh found." << child2.getName() << "\n";
+        return;
+    }
+    std::cout << "Found mesh " << child2.getName() << ".\n";
+
+    IPolyMesh mesh(child1, child2.getName()); // First arg is parent object
+
+    // Get positions
+    IPolyMeshSchema& schema = mesh.getSchema();
+    P3fArraySamplePtr positionsSPtr = schema.getValue().getPositions();
+    const QVector3D *positions = reinterpret_cast<const QVector3D*>(positionsSPtr->getData());
+    qDebug() << "-Positions-";
+    for(int i=0; i<positionsSPtr->size(); i++) {
+        qDebug() << positions[i];
+    }
+
+    // Get position indices
+    Int32ArraySamplePtr posIndicesSPtr = schema.getValue().getFaceIndices();
+    const uint *posIndices = reinterpret_cast<const unsigned int *>(posIndicesSPtr->getData());
+    qDebug() << "-Pos indices-";
+    for(int i=0; i<posIndicesSPtr->size(); i++) {
+        qDebug() << posIndices[i];
+    }
+
+    // Get UVs
+    IV2fGeomParam uvsParam = schema.getUVsParam();
+    if(!uvsParam.valid()) {
+        std::cout << "No uvs.";
+        return;
+    }
+
+    IV2fGeomParam::Sample uvsSample = uvsParam.getIndexedValue();
+    V2fArraySamplePtr uvSPtr = uvsSample.getVals();
+    const QVector2D *uvs = reinterpret_cast<const QVector2D*>(uvSPtr->getData());
+    qDebug() << "-UVs-";
+    for(int i=0; i<uvSPtr->size(); i++) {
+        qDebug() << uvs[i];
+    }
+
+    // Get UVs indices
+    UInt32ArraySamplePtr indicesSPtr = uvsSample.getIndices();
+    const unsigned int *indices = reinterpret_cast<const unsigned int *>(indicesSPtr->getData());
+    qDebug() << "-UV indices-";
+    for(int i=0; i<indicesSPtr->size(); i++) {
+        qDebug() << indices[i];
+    }
+
+
+/*
     if (IPolyMeshSchema::matches(md2) || ISubDSchema::matches(md2)) {
         std::cout << "Found a mesh " << child2.getName() << "\n";
 
@@ -85,6 +136,7 @@ Mesh::Mesh(const char* filepath)
         qInfo().noquote() << "Create new position array time: " <<  elapsed << " ms";
 
     }
+    */
 }
 
 Mesh::~Mesh()
