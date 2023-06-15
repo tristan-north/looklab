@@ -5,8 +5,8 @@ uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_proj;
 
-in vec3 a_position;
-in vec3 a_normal;
+layout (location = 0) in vec3 a_position;
+layout (location = 1) in vec3 a_normal;
 
 out vec3 v_posCam;
 out vec3 v_normal;
@@ -30,7 +30,6 @@ static const char* fragmentShaderSource = R"(
 float fit(float value, float min1, float max1, float min2, float max2) {
   return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
 }
-
 
 layout(std140) uniform strokesBlock {
     vec4[1024] strokes;
@@ -78,11 +77,11 @@ uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_proj;
 
-in vec3 a_position;
-in vec2 a_uv;
+layout (location = 0) in vec3 a_position;
+layout (location = 1) in vec2 a_uv;
 
 out vec3 v_posCam;
-out vec3 v_uv;
+out vec2 v_uv;
 out vec3 v_posWorld;
 
 void main()
@@ -109,7 +108,7 @@ layout(std140) uniform strokesBlock {
 };
 
 in vec3 v_posCam;
-in vec3 v_uv;
+in vec2 v_uv;
 in vec3 v_posWorld;
 
 out vec4 FragColor;
@@ -134,6 +133,6 @@ void main()
     // Gamma correction
     FragColor = vec4(pow(FragColor.rgb, vec3(1.0/2.2)), 1.0);
 
-    FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    FragColor = vec4(v_uv.x, v_uv.y, 0.0, 1.0);
 }
 )";

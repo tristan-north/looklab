@@ -30,12 +30,12 @@ GLWidget::GLWidget(QWidget* parent)
 
 GLWidget::~GLWidget()
 {
-    // if (m_program == nullptr)
+    // if (m_programDefault == nullptr)
     //     return;
     // makeCurrent();
     // m_logoVbo.destroy();
-    // delete m_program;
-    // m_program = nullptr;
+    // delete m_programDefault;
+    // m_programDefault = nullptr;
     // doneCurrent();
 }
 
@@ -64,17 +64,17 @@ void GLWidget::printShaderCompilationStatus(uint id)
     }
 }
 
-uint GLWidget::createProgram()
+uint GLWidget::createProgram(const char *vsSrc, const char *fragSrc)
 {
     uint program = glCreateProgram();
 
     uint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertexShaderSource, nullptr);
+    glShaderSource(vs, 1, &vsSrc, nullptr);
     glCompileShader(vs);
     printShaderCompilationStatus(vs);
 
     uint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragmentShaderSource, nullptr);
+    glShaderSource(fs, 1, &fragSrc, nullptr);
     glCompileShader(fs);
     printShaderCompilationStatus(fs);
 
@@ -86,19 +86,8 @@ uint GLWidget::createProgram()
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    glUseProgram(program);
-
-    m_modelMatrixLoc = glGetUniformLocation(program, "u_model");
-    m_viewMatrixLoc = glGetUniformLocation(program, "u_view");
-    m_projMatrixLoc = glGetUniformLocation(program, "u_proj");
-
     printGlErrors("createProgram");
     return program;
-}
-
-QSize GLWidget::minimumSizeHint() const
-{
-    return QSize(50, 50);
 }
 
 QSize GLWidget::sizeHint() const
@@ -116,8 +105,7 @@ void GLWidget::initializeGL()
     initializeOpenGLFunctions();
 
     glEnable(GL_DEPTH_TEST);
-    // Enable backface culling
-    glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);  // Enable backface culling
     glCullFace(GL_BACK);
     glFrontFace(GL_CW); // Alembic winding order is Clockwise
 
@@ -128,7 +116,13 @@ void GLWidget::initializeGL()
     qInfo() << "";
     glClearColor(0.18, 0.18, 0.18, 1);
 
-    m_program = createProgram();
+    m_programDefault = createProgram(vertexShaderSource, fragmentShaderSource);
+    m_programBake = createProgram(bakeVtxShaderSrc, bakeFragShaderSrc);
+    glUseProgram(m_programDefault);
+
+    m_modelMatrixLoc = glGetUniformLocation(m_programDefault, "u_model");
+    m_viewMatrixLoc = glGetUniformLocation(m_programDefault, "u_view");
+    m_projMatrixLoc = glGetUniformLocation(m_programDefault, "u_proj");
 
     //Mesh mesh("../testGeo/testCube3.abc");
 //    Mesh mesh("../testGeo/pika_kakashi.abc");
@@ -139,29 +133,27 @@ void GLWidget::initializeGL()
     std::vector<QVector3D> normals(mesh.m_numPositions);
     computeNormals(&mesh, normals.data());
 
-    glGenVertexArrays(1, &m_vao);
-    glBindVertexArray(m_vao);
-
+    // Create buffers containing the geo data
     uint posBuffer;
     glGenBuffers(1, &posBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, posBuffer);
     glBufferData(GL_ARRAY_BUFFER, mesh.m_numPositions * sizeof(QVector3D), mesh.m_positions, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray(0);
 
     uint normalsBuffer;
     glGenBuffers(1, &normalsBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalsBuffer);
     glBufferData(GL_ARRAY_BUFFER, mesh.m_numPositions * sizeof(QVector3D), normals.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray(1);
+
+    uint uvsBuffer;
+    glGenBuffers(1, &uvsBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, uvsBuffer);
+    glBufferData(GL_ARRAY_BUFFER, mesh.m_numPositions * sizeof(QVector2D), mesh.m_UVs, GL_STATIC_DRAW);
 
     uint indexBuffer;
     glGenBuffers(1, &indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.m_numIndices * sizeof(uint), mesh.m_indices, GL_STATIC_DRAW);
 
-    // Test of sending float array to shaders
     // Even tho we only care about 3D, openGL will pad the ubo as a vec4
     QVector4D strokes[50];
     GLuint strokeBuffer;
@@ -169,6 +161,34 @@ void GLWidget::initializeGL()
     glBindBuffer(GL_UNIFORM_BUFFER, strokeBuffer);
     glBufferData(GL_UNIFORM_BUFFER, MAX_STOKE_POINTS * sizeof(QVector4D), NULL, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, strokeBuffer);  // Bind stroke buffer to uniform buffer location 0
+
+    // Set up the normal default VAO
+    glGenVertexArrays(1, &m_vaoDefault);
+    glBindVertexArray(m_vaoDefault);
+
+    glBindBuffer(GL_ARRAY_BUFFER, posBuffer);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, normalsBuffer);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+    // Set up the bake VAO
+    glGenVertexArrays(1, &m_vaoBake);
+    glBindVertexArray(m_vaoBake);
+
+    glBindBuffer(GL_ARRAY_BUFFER, posBuffer);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, uvsBuffer);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
     printGlErrors("init");
 }
@@ -182,6 +202,12 @@ void GLWidget::paintGL()
     m_view.translate(m_camPos);
     m_view.rotate(m_xRot, 1, 0, 0);
     m_view.rotate(m_yRot, 0, 1, 0);
+
+//    glUseProgram(m_programDefault);
+//    glBindVertexArray(m_vaoDefault);
+
+    glUseProgram(m_programBake);
+    glBindVertexArray(m_vaoBake);
 
     glUniformMatrix4fv(m_modelMatrixLoc, 1, GL_FALSE, m_model.constData());
     glUniformMatrix4fv(m_viewMatrixLoc, 1, GL_FALSE, m_view.constData());

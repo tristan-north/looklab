@@ -20,7 +20,6 @@ public:
     GLWidget(QWidget* parent = nullptr);
     ~GLWidget();
 
-    QSize minimumSizeHint() const override;
     QSize sizeHint() const override;
 
 protected:
@@ -32,7 +31,7 @@ protected:
     void keyPressEvent(QKeyEvent* event) override;
 
 private:
-    uint createProgram();
+    uint createProgram(const char *vsSrc, const char *fragSrc);
     void printShaderCompilationStatus(uint id);
     void printGlErrors(QString str);
     void computeNormals(Mesh* mesh, QVector3D* normals);
@@ -45,8 +44,10 @@ private:
     std::vector<QVector4D> strokePositionsAndRadius;
 
     uint m_numTris = 0;
-    uint m_program = 0;
-    uint m_vao = 0;
+    uint m_programDefault = 0;
+    uint m_programBake = 0;
+    uint m_vaoDefault = 0;
+    uint m_vaoBake = 0;
     uint m_modelMatrixLoc = 0;
     uint m_viewMatrixLoc = 0;
     uint m_projMatrixLoc = 0;
