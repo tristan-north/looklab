@@ -73,25 +73,19 @@ void main()
 static const char* bakeVtxShaderSrc = R"(
 #version 330 core
 
-uniform mat4 u_model;
-uniform mat4 u_view;
-uniform mat4 u_proj;
-
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec2 a_uv;
 
-out vec3 v_posCam;
 out vec2 v_uv;
 out vec3 v_posWorld;
 
 void main()
 {
-    vec4 worldPosition = u_model * vec4(a_position, 1.0);
-    gl_Position = u_proj * u_view * worldPosition;
+    vec2 clipSpacePos = (a_uv - 0.5) * 2.0;
+    gl_Position = vec4(clipSpacePos, 0.0, 1.0);
 
-    v_posCam = (u_view * worldPosition).xyz; // Position without proj transform
     v_uv = a_uv;
-    v_posWorld = worldPosition.xyz;
+    v_posWorld = a_position;
 }
 )";
 
@@ -107,7 +101,6 @@ layout(std140) uniform strokesBlock {
     vec4[1024] strokes;
 };
 
-in vec3 v_posCam;
 in vec2 v_uv;
 in vec3 v_posWorld;
 
@@ -115,8 +108,6 @@ out vec4 FragColor;
 
 void main()
 {
-    vec3 albedo = vec3(0.5, 0.5, 0.5);
-
     float mask = 0.0;
     for( int i=0; i<2048; i++ ) {
         if( strokes[i].w == 0.0)
@@ -126,13 +117,8 @@ void main()
         if( dist < 0.03 )
             mask += 0.3;
     }
-    mask = clamp(mask, 0.2, 1.0);
+    mask = clamp(mask, 0.0, 1.0);
 
-    FragColor = vec4(albedo * mask, 1.0);
-
-    // Gamma correction
-    FragColor = vec4(pow(FragColor.rgb, vec3(1.0/2.2)), 1.0);
-
-    FragColor = vec4(v_uv.x, v_uv.y, 0.0, 1.0);
+    FragColor = vec4(vec3(mask), 1.0);
 }
 )";

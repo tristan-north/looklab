@@ -1,16 +1,14 @@
 #pragma once
 
 #include "mesh.h"
-
+#include "perftimer.h"
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QMatrix4x4>
-#include <QElapsedTimer>
 #include <QLabel>
 #include <vector>
 
 static const int MAX_STOKE_POINTS = 2048;
-
 
 class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
@@ -27,18 +25,20 @@ protected:
     void paintGL() override;
     void resizeGL(int width, int height) override;
     void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
 
 private:
     uint createProgram(const char *vsSrc, const char *fragSrc);
+    void createBakeBuffer();
     void printShaderCompilationStatus(uint id);
-    void printGlErrors(QString str);
+    void printGlErrors(const QString &str);
     void computeNormals(Mesh* mesh, QVector3D* normals);
 
+    int m_bakeRes = 512;
     float m_xRot = 0;
     float m_yRot = 0;
-    float m_zRot = 0;
     QVector3D m_camPos = { 0.0f, -0.5f, -2.0f };
     QPoint m_lastMousePos;
     std::vector<QVector4D> strokePositionsAndRadius;
@@ -48,12 +48,14 @@ private:
     uint m_programBake = 0;
     uint m_vaoDefault = 0;
     uint m_vaoBake = 0;
-    uint m_modelMatrixLoc = 0;
-    uint m_viewMatrixLoc = 0;
-    uint m_projMatrixLoc = 0;
+    uint m_fboBake = 0;
+    int m_modelMatrixLoc = 0;
+    int m_viewMatrixLoc = 0;
+    int m_projMatrixLoc = 0;
     QMatrix4x4 m_model;
     QMatrix4x4 m_view;
     QMatrix4x4 m_proj;
-    QElapsedTimer m_frameTimer;
+//    QElapsedTimer m_frameTimer;
+    PerfTimer m_frameTimer;
     QLabel* m_frameTimeLabel;
 };

@@ -1,14 +1,15 @@
-Next: Have made temp bake shaders, swap to using them on 'W'
 
 Texture Bake Steps
-x Get uv data from alembic
-o Render a red texture on 'W'
-o Clean up bake shaders
-o Create new shaders for the UV render pass
-o Create geo with UDIMs
-o Look into using multiple render targets to render all the UDIMs
+o Don't allocate pixels array for bake every bake
+o Try using a render buffer object instead of a texture for the bake framebuffer
+o Look into the deal with using a single channel fbo and outputting vec4 from frag shader
+o UDIM support, look into using multiple render targets to render all the UDIMs
+o Expand the bake to avoid edge artifacts from filtering
+o Read in the baked texture to openGl and reset the draw line
 
 
+o Asset everywhere
+o Currently if rotating with alt+click and let go of alt it starts painting.
 o Clean up Alembic reading, especially UVs. May be leaking memory.
 o Mipmap the textures
 o Add compression to texture

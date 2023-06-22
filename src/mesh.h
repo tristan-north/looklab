@@ -9,11 +9,11 @@ public:
     Mesh(const char* filepath);
     ~Mesh();
 
-    uint m_numPositions = {};
+    int m_numPositions = {};
     const QVector3D* m_positions;
     const QVector2D* m_UVs;
 
-    uint m_numIndices = {};
+    int m_numIndices = {};
     const uint* m_indices = nullptr;
 
 private:

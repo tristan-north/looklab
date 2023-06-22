@@ -1,8 +1,8 @@
 #include "mesh.h"
+#include "perftimer.h"
 #include <Alembic/Abc/IObject.h>
 #include <Alembic/AbcGeom/All.h>
 #include <Alembic/AbcCoreOgawa/All.h>
-#include <QElapsedTimer>
 #include <QDebug>
 #include <QVector2D>
 
@@ -88,8 +88,7 @@ Mesh::Mesh(const char* filepath)
     // Need to create new position and position indices array since there may be vertices which
     // share the same position but have different UVs and OpenGL only supports one index for all
     // vertex attributes.
-    QElapsedTimer timer;
-    timer.start();
+    PerfTimer perfTimer;
     auto newPositions = new std::vector<V3f>(m_uvsSharedPtr->size());
     m_numIndices = m_indicesSharedPtr->size();
     for(int i=0; i<m_numIndices; ++i) {
@@ -99,8 +98,7 @@ Mesh::Mesh(const char* filepath)
     m_positions = (QVector3D*)newPositions->data();
     m_indices = indices;
 
-    QString elapsed = QString::number(timer.nsecsElapsed() / 1000000., 'f', 1);
-    qInfo().noquote() << "Time to split positions: " <<  elapsed << " ms";
+    perfTimer.printElapsedMSec("Time to split positions: ");
 }
 
 Mesh::~Mesh()

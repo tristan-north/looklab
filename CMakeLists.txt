@@ -18,7 +18,7 @@ add_executable(looklab
         src/mainwindow.h
         src/mesh.cpp
         src/mesh.h
-        src/shaders.h src/tif.cpp src/tif.h)
+        src/shaders.h src/tif.cpp src/tif.h src/perftimer.h)
 
 
 target_link_libraries(looklab Qt5::Widgets)

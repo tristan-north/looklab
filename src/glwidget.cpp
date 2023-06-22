@@ -1,11 +1,11 @@
 #include "glwidget.h"
 #include "shaders.h"
 #include "tif.h"
+#include "perftimer.h"
 
 #include <QMouseEvent>
 #include <QOpenGLShaderProgram>
 #include <QGuiApplication>
-#include <QTimer>
 #include <QApplication>
 
 float VIEW_ROTATE_SPEED = 0.2f;
@@ -14,6 +14,8 @@ float VIEW_PAN_SPEED = 0.003f;
 float VIEW_FOV = 45.0;
 float VIEW_NEAR_CLIP = 0.1f;
 float VIEW_FAR_CLIP = 10.0f;
+
+void bakeUVs();
 
 GLWidget::GLWidget(QWidget* parent)
     : QOpenGLWidget(parent)
@@ -39,7 +41,7 @@ GLWidget::~GLWidget()
     // doneCurrent();
 }
 
-void GLWidget::printGlErrors(QString str)
+void GLWidget::printGlErrors(const QString &str)
 {
     while (GLenum error = glGetError()) {
         qCritical() << "[OpenGL error] : " << str << " : " << error;
@@ -92,7 +94,7 @@ uint GLWidget::createProgram(const char *vsSrc, const char *fragSrc)
 
 QSize GLWidget::sizeHint() const
 {
-    return QSize(1024, 1024);
+    return {1024, 1024};
 }
 
 static void qNormalizeAngle(float& angle)
@@ -115,6 +117,8 @@ void GLWidget::initializeGL()
     qInfo() << "GLSL Version: " << reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
     qInfo() << "";
     glClearColor(0.18, 0.18, 0.18, 1);
+
+    createBakeBuffer();
 
     m_programDefault = createProgram(vertexShaderSource, fragmentShaderSource);
     m_programBake = createProgram(bakeVtxShaderSrc, bakeFragShaderSrc);
@@ -193,21 +197,42 @@ void GLWidget::initializeGL()
     printGlErrors("init");
 }
 
+void GLWidget::createBakeBuffer()
+{
+    glGenFramebuffers(1, &m_fboBake);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fboBake);
+
+    // Create a texture to use as the backbuffer
+    GLuint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, m_bakeRes, m_bakeRes, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Attach the texture to the framebuffer
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+
+    // Check that the framebuffer is complete
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        qCritical() << "Error creating framebuffer for baking.";
+    }
+
+    // Rebind the main framebuffer that Qt created for us.
+    glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
+}
 
 void GLWidget::paintGL()
 {
-    m_frameTimer.start();
+    m_frameTimer.restart();
 
     m_view.setToIdentity();
     m_view.translate(m_camPos);
     m_view.rotate(m_xRot, 1, 0, 0);
     m_view.rotate(m_yRot, 0, 1, 0);
 
-//    glUseProgram(m_programDefault);
-//    glBindVertexArray(m_vaoDefault);
-
-    glUseProgram(m_programBake);
-    glBindVertexArray(m_vaoBake);
+    glUseProgram(m_programDefault);
+    glBindVertexArray(m_vaoDefault);
 
     glUniformMatrix4fv(m_modelMatrixLoc, 1, GL_FALSE, m_model.constData());
     glUniformMatrix4fv(m_viewMatrixLoc, 1, GL_FALSE, m_view.constData());
@@ -247,9 +272,7 @@ void GLWidget::paintGL()
     printGlErrors("glDrawArrays");
 
     glFinish(); // This blocks until all gl commands have finished. Using for frame timing.
-    QString elapsed = QString::number(m_frameTimer.nsecsElapsed() / 1000000.f, 'f', 2);
-    m_frameTimeLabel->setText(elapsed.append(" ms"));
-
+    m_frameTimeLabel->setText(QString::number(m_frameTimer.elapsedMSec(), 'f', 2));
 }
 
 void GLWidget::resizeGL(int w, int h)
@@ -264,6 +287,38 @@ void GLWidget::mousePressEvent(QMouseEvent* event)
     m_lastMousePos = event->pos();
     update();
 }
+
+void GLWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    PerfTimer perfTimer;
+
+    makeCurrent();
+
+    glViewport(0, 0, m_bakeRes, m_bakeRes);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fboBake);
+    glUseProgram(m_programBake);
+    glBindVertexArray(m_vaoBake);
+
+    glClear(GL_COLOR_BUFFER_BIT);
+    printGlErrors("Render to bake framebuffer start");
+
+    glDrawElements(GL_TRIANGLES, m_numTris * 3, GL_UNSIGNED_INT, nullptr);
+    printGlErrors("Bake glDrawArrays");
+
+    glFinish(); // This blocks until all gl commands have finished. Using for frame timing.
+    perfTimer.printElapsedMSec("Render UV bake time: ");
+
+    perfTimer.restart();
+    std::vector<unsigned char> pixels(m_bakeRes*m_bakeRes);
+    perfTimer.printElapsedMSec("Time to create pixel array for writeTif: ");
+    perfTimer.restart();
+    glReadPixels(0, 0, m_bakeRes, m_bakeRes, GL_RED, GL_UNSIGNED_BYTE, pixels.data());
+    perfTimer.printElapsedMSec("Time for glReadPixels: ");
+    printGlErrors("UV bake read pixels.");
+    writeTif(pixels, m_bakeRes);
+}
+
 
 void GLWidget::mouseMoveEvent(QMouseEvent* event)
 {
@@ -297,10 +352,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event)
 void GLWidget::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_W)
     {
-        std::vector<unsigned char> pixels(width()*height());
-        glReadPixels(0, 0, width(), height(), GL_RED, GL_UNSIGNED_BYTE, pixels.data());
-        assert(width() == height() && "Image must be square.");
-        writeTif(pixels, width());
+//        std::vector<unsigned char> pixels(width()*height());
+//        glReadPixels(0, 0, width(), height(), GL_RED, GL_UNSIGNED_BYTE, pixels.data());
+//        assert(width() == height() && "Image must be square.");
+//        writeTif(pixels, width());
     }
     else
         QWidget::keyPressEvent(event);
@@ -314,8 +369,7 @@ void GLWidget::computeNormals(Mesh* mesh, QVector3D* normals)
         uint v3;
     };
 
-    QElapsedTimer timer;
-    timer.start();
+    PerfTimer perfTimer;
 
     const tri* tris = reinterpret_cast<const tri*>(mesh->m_indices);
 
@@ -338,7 +392,6 @@ void GLWidget::computeNormals(Mesh* mesh, QVector3D* normals)
         normals[i].normalize();
     }
 
-    qInfo() << "Time to generate normals: " << timer.elapsed() << "ms";
-
+    perfTimer.printElapsedMSec("Time to generate normals: ");
 }
 

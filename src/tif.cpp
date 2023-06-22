@@ -80,7 +80,7 @@ static void getTileFromImageData(int tileIdx, int tileSize, std::vector<unsigned
 
 }
 
-void writeTif(const std::vector<unsigned char> pixels, const int res)
+void writeTif(const std::vector<unsigned char> &pixels, const int res)
 {
     const uint tileSize = 64; // Rman expects 64 tile size
 
