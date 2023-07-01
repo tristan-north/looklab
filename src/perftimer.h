@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <chrono>
+#include <iostream>
+#include <iomanip>
 
 class PerfTimer
 {
@@ -20,7 +22,6 @@ public:
         std::cout << message << elapsedMSec() << " ms" << std::endl;
     }
 
-private:
     static std::uint64_t takeTimeStamp() {
 //        return std::uint64_t(std::chrono::high_resolution_clock::now().time_since_epoch().count());
         // On mingw steady clock seems higher resolution than high res clock.

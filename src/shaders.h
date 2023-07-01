@@ -104,7 +104,7 @@ layout(std140) uniform strokesBlock {
 in vec2 v_uv;
 in vec3 v_posWorld;
 
-out vec4 FragColor;
+out float FragColor;
 
 void main()
 {
@@ -119,6 +119,6 @@ void main()
     }
     mask = clamp(mask, 0.0, 1.0);
 
-    FragColor = vec4(vec3(mask), 1.0);
+    FragColor = mask;
 }
 )";

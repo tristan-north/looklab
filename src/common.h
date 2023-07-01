@@ -1,0 +1,6 @@
+#pragma once
+
+#define RENDERWIDTH 800
+#define RENDERHEIGHT 800
+#define BAKRES 512
+#define MAX_STROKE_POINTS 2048

@@ -15,8 +15,6 @@ float VIEW_FOV = 45.0;
 float VIEW_NEAR_CLIP = 0.1f;
 float VIEW_FAR_CLIP = 10.0f;
 
-void bakeUVs();
-
 GLWidget::GLWidget(QWidget* parent)
     : QOpenGLWidget(parent)
 {
@@ -25,7 +23,7 @@ GLWidget::GLWidget(QWidget* parent)
 
     setUpdateBehavior(QOpenGLWidget::PartialUpdate); // Tell Qt not to clear the buffers
 
-    setFixedSize(1024, 1024);
+    setFixedSize(RENDERWIDTH, RENDERHEIGHT);
 
     setFocus();  // Needed this to recieve key press events
 }
@@ -163,7 +161,7 @@ void GLWidget::initializeGL()
     GLuint strokeBuffer;
     glGenBuffers(1, &strokeBuffer);
     glBindBuffer(GL_UNIFORM_BUFFER, strokeBuffer);
-    glBufferData(GL_UNIFORM_BUFFER, MAX_STOKE_POINTS * sizeof(QVector4D), NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, MAX_STROKE_POINTS * sizeof(QVector4D), NULL, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, strokeBuffer);  // Bind stroke buffer to uniform buffer location 0
 
     // Set up the normal default VAO
@@ -254,11 +252,11 @@ void GLWidget::paintGL()
         QVector3D worldPosition(x, y, depth);
         worldPosition = worldPosition.unproject(m_view, m_proj, QRect(0, 0, width(), height()));
 
-        strokePositionsAndRadius.reserve(MAX_STOKE_POINTS);
-        if(strokePositionsAndRadius.size() < MAX_STOKE_POINTS)
+        strokePositionsAndRadius.reserve(MAX_STROKE_POINTS);
+        if(strokePositionsAndRadius.size() < MAX_STROKE_POINTS)
             strokePositionsAndRadius.emplace_back(worldPosition, 1.0f);
 
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, MAX_STOKE_POINTS * sizeof(QVector4D), strokePositionsAndRadius.data());
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, MAX_STROKE_POINTS * sizeof(QVector4D), strokePositionsAndRadius.data());
         printGlErrors("Update Stroke Buffer");
 
         if(strokePositionsAndRadius.size() % 100 == 0)

@@ -5,10 +5,15 @@ set(CMAKE_CXX_STANDARD 14)
 
 find_package(Qt5Widgets REQUIRED)
 set(CMAKE_AUTOMOC ON)
+cmake_path(SET RMANTREE $ENV{RMANTREE})
 
 include_directories(src)
 include_directories(${IMATH_INCLUDEDIR})
 include_directories(${ALEMBIC_INCLUDEDIR})
+include_directories("${RMANTREE}include")
+
+# Can't use debug -MDd in debug build as it's incompatible with prman lib.
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
 
 add_executable(looklab
         src/glwidget.cpp
@@ -18,9 +23,15 @@ add_executable(looklab
         src/mainwindow.h
         src/mesh.cpp
         src/mesh.h
-        src/shaders.h src/tif.cpp src/tif.h src/perftimer.h)
+        src/shaders.h src/tif.cpp src/tif.h src/perftimer.h src/displaydriver.cpp src/displaydriver.h src/rman.cpp src/rman.h src/common.h src/renderview.cpp src/renderview.h)
 
 
 target_link_libraries(looklab Qt5::Widgets)
 target_link_libraries(looklab ${ALEMBIC_LIB})
 target_link_libraries(looklab ${IMATH_LIB})
+target_link_libraries(looklab
+        "${RMANTREE}lib/libprman.lib"
+        "${RMANTREE}lib/libpxrcore.lib"
+        "${RMANTREE}lib/libstats.lib"
+        "${RMANTREE}lib/libloadprman.lib"
+        )

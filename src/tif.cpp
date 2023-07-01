@@ -91,13 +91,15 @@ void writeTif(const std::vector<unsigned char> &pixels, const int res)
 
     const uint numTiles = (res / tileSize) * (res / tileSize);
 
-    uint16_t tileByteCount[numTiles];
+//    uint16_t tileByteCount[numTiles];
+    std::vector<uint16_t> tileByteCount(numTiles);
     for (uint16_t &i: tileByteCount)
         i = tileSize * tileSize;
 
-    uint32_t tileOffsets[numTiles];
+//    uint32_t tileOffsets[numTiles];
+    std::vector<uint32_t> tileOffsets(numTiles);
     for (int i = 0; i < numTiles; ++i) {
-        tileOffsets[i] = sizeof(TifHead) + sizeof(TifIFD) + sizeof(tileOffsets) + sizeof(tileByteCount) + i*tileSize*tileSize; // Point to the data itself
+        tileOffsets[i] = sizeof(TifHead) + sizeof(TifIFD) + tileOffsets.size()*sizeof(uint32_t) + tileByteCount.size()*sizeof(uint16_t) + i*tileSize*tileSize; // Point to the data itself
     }
 
 
@@ -172,7 +174,7 @@ void writeTif(const std::vector<unsigned char> &pixels, const int res)
     tifIFD.TagList[9].DataType = SHORT;
     tifIFD.TagList[9].DataCount = numTiles;
     if(numTiles > 1) { // If numTiles is 1 the DataOffset needs to contain the actual data rather pointing to it.
-        tifIFD.TagList[9].DataOffset = sizeof(tifHead) + sizeof(tifIFD) + sizeof(tileOffsets);
+        tifIFD.TagList[9].DataOffset = sizeof(tifHead) + sizeof(tifIFD) + tileOffsets.size()*sizeof(uint32_t);
     }
     else {
         tifIFD.TagList[9].DataOffset = tileSize * tileSize;
@@ -187,8 +189,8 @@ void writeTif(const std::vector<unsigned char> &pixels, const int res)
     file.write(reinterpret_cast<char*>(&tifHead), sizeof(tifHead));
     file.write(reinterpret_cast<char*>(&tifIFD), sizeof(tifIFD));
     if(numTiles > 1) { // If numTiles is one, this info goes into the tag directly
-        file.write(reinterpret_cast<char*>(&tileOffsets), sizeof(tileOffsets));
-        file.write(reinterpret_cast<char*>(&tileByteCount), sizeof(tileByteCount));
+        file.write(reinterpret_cast<char*>(tileOffsets.data()), tileOffsets.size()*sizeof(uint32_t));
+        file.write(reinterpret_cast<char*>(tileByteCount.data()), tileByteCount.size()*sizeof(uint16_t));
     }
 
     std::vector<unsigned char> tileData(tileSize*tileSize);

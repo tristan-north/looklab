@@ -2,13 +2,13 @@
 
 #include "mesh.h"
 #include "perftimer.h"
+#include "common.h"
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QMatrix4x4>
 #include <QLabel>
 #include <vector>
 
-static const int MAX_STOKE_POINTS = 2048;
 
 class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
@@ -36,7 +36,7 @@ private:
     void printGlErrors(const QString &str);
     void computeNormals(Mesh* mesh, QVector3D* normals);
 
-    int m_bakeRes = 512;
+    int m_bakeRes = BAKRES;
     float m_xRot = 0;
     float m_yRot = 0;
     QVector3D m_camPos = { 0.0f, -0.5f, -2.0f };
