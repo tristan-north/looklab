@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-#include "tif.h"
 #include "rman.h"
 
 #include <QTimer>
@@ -7,10 +6,6 @@
 #include <QDesktopWidget>
 #include <QSurfaceFormat>
 
-void makeSceneEdit() {
-    rmanSceneEdit();
-    QTimer::singleShot(100, nullptr, makeSceneEdit);
-}
 
 int main(int argc, char* argv[])
 {
@@ -28,7 +23,6 @@ int main(int argc, char* argv[])
     mainWindow.show();
 
     QTimer::singleShot(0, nullptr, startRender);
-    QTimer::singleShot(100, nullptr, makeSceneEdit);
 
     return app.exec();
 }

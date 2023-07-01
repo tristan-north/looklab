@@ -4,11 +4,12 @@
 #include <RixPredefinedStrings.hpp>
 #include <RixSceneGraph.h>
 #include <stdio.h>
+#include <QMatrix>
 
 namespace rsg = rman::scenegraph;
 
 rsg::Scene* g_scene = nullptr;
-rsg::Group* g_cameraGroup = nullptr;
+rsg::Camera* g_camera = nullptr;
 
 void createScene(RixSGManager* sgmngr, stats::Session& statsSession) {
     // Create the scene
@@ -47,32 +48,36 @@ void createScene(RixSGManager* sgmngr, stats::Session& statsSession) {
     {
         sphere->SetMaterial(material);
         RtMatrix4x4 transform{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+        transform.Translate(0, 0.5, 0);
+        transform.Scale(0.5, 0.5, 0.5);
         transform.Rotate(-90, 1, 0, 0);
         sphere->SetTransform(transform);
         g_scene->Root()->AddChild(sphere);
     }
 
     // Create render camera and parent under a group
-    g_cameraGroup = g_scene->CreateGroup(RtUString("g_cameraGroup"));
-    g_scene->Root()->AddChild(g_cameraGroup);
-    rsg::Camera* camera = g_scene->CreateCamera(RtUString("camera"));
+//    g_cameraGroup = g_scene->CreateGroup(RtUString("g_cameraGroup"));
+//    g_scene->Root()->AddChild(g_cameraGroup);
+    g_camera = g_scene->CreateCamera(RtUString("camera"));
     {
         rsg::Shader proj(rsg::ShaderType::k_Projection, RtUString("PxrPerspective"),
                          RtUString("proj"));
-        proj.params.SetFloat(Rix::k_fov, 35);
-        camera->SetProjection(1, &proj);
+        proj.params.SetFloat(Rix::k_fov, VIEW_FOV);
+        g_camera->SetProjection(1, &proj);
         RtMatrix4x4 transform{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-        transform.Translate(0, 0, -5);
-        camera->SetTransform(transform);
-        camera->SetRenderable(true);
-        g_cameraGroup->AddChild(camera);
+        transform.Translate(INITIAL_CAM_POS);
+        transform.Inverse(&transform);
+        transform.Scale(1.0f, 1.0f, -1.0f);
+        g_camera->SetTransform(transform);
+        g_camera->SetRenderable(true);
+        g_scene->Root()->AddChild(g_camera);
     }
 
     // Create an output display driver
     rsg::Shader display(rsg::ShaderType::k_Display, RtUString("looklabDisplay"), RtUString(""));
     //    rsg::Shader display(rsg::ShaderType::k_Display, RtUString("tiff"),
     //    RtUString("rmanTest.tif"));
-    camera->SetDisplay(1, &display);
+    g_camera->SetDisplay(1, &display);
 
     // Render the scene blocking
     //        g_scene->Render("prman -blocking");
@@ -80,18 +85,14 @@ void createScene(RixSGManager* sgmngr, stats::Session& statsSession) {
     g_scene->Render("prman -live");
 }
 
-void rmanSceneEdit() {
-    static int i{0};
-    //    printf("Edit %d\n", i);
-
+void rmanSetCamXform(const QMatrix4x4& xformMat) {
     {
         rsg::Scene::ScopedEdit edit(g_scene);
-        RtMatrix4x4 transform{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-        transform.Rotate(1 * i, 0, 1, 0);
-        g_cameraGroup->SetTransform(transform);
+        RtMatrix4x4 transform;
+        memcpy(transform.m, xformMat.inverted().data(), 16*sizeof(float));
+        transform.Scale(1.0f, 1.0f, -1.0f);  // Z axis is different for openGL cam
+        g_camera->SetTransform(transform);
     }
-
-    ++i;
 }
 
 void startRender() {

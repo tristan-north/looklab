@@ -1,4 +1,5 @@
 #include "glwidget.h"
+#include "rman.h"
 #include "shaders.h"
 #include "tif.h"
 #include "perftimer.h"
@@ -11,7 +12,6 @@
 float VIEW_ROTATE_SPEED = 0.2f;
 float VIEW_DOLLY_SPEED = 0.01f;
 float VIEW_PAN_SPEED = 0.003f;
-float VIEW_FOV = 45.0;
 float VIEW_NEAR_CLIP = 0.1f;
 float VIEW_FAR_CLIP = 10.0f;
 
@@ -26,6 +26,8 @@ GLWidget::GLWidget(QWidget* parent)
     setFixedSize(RENDERWIDTH, RENDERHEIGHT);
 
     setFocus();  // Needed this to recieve key press events
+
+    updateCamXform(false);
 }
 
 GLWidget::~GLWidget()
@@ -224,11 +226,6 @@ void GLWidget::paintGL()
 {
     m_frameTimer.restart();
 
-    m_view.setToIdentity();
-    m_view.translate(m_camPos);
-    m_view.rotate(m_xRot, 1, 0, 0);
-    m_view.rotate(m_yRot, 0, 1, 0);
-
     glUseProgram(m_programDefault);
     glBindVertexArray(m_vaoDefault);
 
@@ -277,7 +274,6 @@ void GLWidget::resizeGL(int w, int h)
 {
     m_proj.setToIdentity();
     m_proj.perspective(VIEW_FOV, GLfloat(w) / h, VIEW_NEAR_CLIP, VIEW_FAR_CLIP);
-
 }
 
 void GLWidget::mousePressEvent(QMouseEvent* event)
@@ -288,6 +284,8 @@ void GLWidget::mousePressEvent(QMouseEvent* event)
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
+    /*
+    // Bake to tif
     PerfTimer perfTimer;
 
     makeCurrent();
@@ -315,8 +313,8 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     perfTimer.printElapsedMSec("Time for glReadPixels: ");
     printGlErrors("UV bake read pixels.");
     writeTif(pixels, m_bakeRes);
+    */
 }
-
 
 void GLWidget::mouseMoveEvent(QMouseEvent* event)
 {
@@ -330,17 +328,21 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event)
         qNormalizeAngle(m_xRot);
         m_yRot += VIEW_ROTATE_SPEED * dx;
         qNormalizeAngle(m_yRot);
+
+        updateCamXform(true);
     }
 
     // Dolly view
     else if (event->buttons() == Qt::RightButton) {
         m_camPos.setZ(m_camPos.z() + VIEW_DOLLY_SPEED * (dx + dy));
+        updateCamXform(true);
     }
 
     // Pan view
     else if (event->buttons() == Qt::MiddleButton) {
         m_camPos.setX(m_camPos.x() + VIEW_PAN_SPEED * dx);
         m_camPos.setY(m_camPos.y() - VIEW_PAN_SPEED * dy);
+        updateCamXform(true);
     }
 
     update();
@@ -391,5 +393,15 @@ void GLWidget::computeNormals(Mesh* mesh, QVector3D* normals)
     }
 
     perfTimer.printElapsedMSec("Time to generate normals: ");
+}
+
+void GLWidget::updateCamXform(bool alsoUpdateRman) {
+    m_view.setToIdentity();
+    m_view.translate(m_camPos);
+    m_view.rotate(m_xRot, 1, 0, 0);
+    m_view.rotate(m_yRot, 0, 1, 0);
+
+    if(alsoUpdateRman)
+        rmanSetCamXform(m_view);
 }
 

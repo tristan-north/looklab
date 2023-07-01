@@ -1,4 +1,5 @@
 
+
 Texture Baking
 o Don't allocate pixels array for bake every bake
 o UDIM support, look into using multiple render targets to render all the UDIMs
@@ -9,6 +10,7 @@ o Read in the baked texture to openGl and reset the draw line
 o Assert everywhere
 o Currently if rotating with alt+click and let go of alt it starts painting.
 o Clean up Alembic reading, especially UVs. May be leaking memory.
+o Currently rendered image is updated on a timer, maybe better to do it with a signal, but limit the signals to no more than 30 times/sec.
 o Mipmap the textures
 o Add compression to texture
 o Automatically set near and far clip to get max res out of depth buffer

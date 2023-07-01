@@ -16,7 +16,7 @@ MainWindow::MainWindow() {
     layout->addWidget(renderView);
     layout->addWidget(glWidget);
     layout->setSpacing(4);
-    layout->setContentsMargins(0,0,0,0);
+    layout->setContentsMargins(10, 10, 10, 10);
 
     centralWidget->setLayout(layout);
     setCentralWidget(centralWidget);
