@@ -1,6 +1,5 @@
 #pragma once
 
-#include "mesh.h"
 #include "perftimer.h"
 #include "common.h"
 #include <QOpenGLWidget>
@@ -34,7 +33,6 @@ private:
     void createBakeBuffer();
     void printShaderCompilationStatus(uint id);
     void printGlErrors(const QString &str);
-    void computeNormals(Mesh* mesh, QVector3D* normals);
     void updateCamXform(bool alsoUpdateRman);
 
     int m_bakeRes = BAKERES;

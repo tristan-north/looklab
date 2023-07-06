@@ -178,9 +178,9 @@ PRMANEXPORT PtDspyError DspyImageData(PtDspyImageHandle pvImage, int xmin, int x
             float b = *((float*)data + 2);
 
             // This is slow
-//            r = pow(r, 2.2);
-//            g = pow(g, 2.2);
-//            b = pow(b, 2.2);
+//            r = pow(r, 1/2.2);
+//            g = pow(g, 1/2.2);
+//            b = pow(b, 1/2.2);
 
             r *= 255;
             g *= 255;

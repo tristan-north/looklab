@@ -9,6 +9,8 @@ public:
     Mesh(const char* filepath);
     ~Mesh();
 
+
+
     int m_numPositions = {};
     const QVector3D* m_positions;
     const QVector2D* m_UVs;
@@ -18,8 +20,8 @@ public:
 
 private:
     Alembic::Abc::v12::IArchive* m_archive = nullptr;
-    Alembic::Abc::P3fArraySamplePtr m_posSharedPtr;
-    Alembic::Abc::Int32ArraySamplePtr m_posIndicesSharedPtr;
-    Alembic::Abc::V2fArraySamplePtr m_uvsSharedPtr;
-    Alembic::Abc::UInt32ArraySamplePtr m_indicesSharedPtr;
+    Alembic::Abc::P3fArraySamplePtr m_posSharedPtr = nullptr;
+    Alembic::Abc::Int32ArraySamplePtr m_posIndicesSharedPtr = nullptr;
+    Alembic::Abc::V2fArraySamplePtr m_uvsSharedPtr = nullptr;
+    Alembic::Abc::UInt32ArraySamplePtr m_indicesSharedPtr = nullptr;
 };

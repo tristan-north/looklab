@@ -1,4 +1,4 @@
-
+o Creating geo in rman. Need to figure out how to store the geo and send to both opengl and rman.
 
 Texture Baking
 o Don't allocate pixels array for bake every bake

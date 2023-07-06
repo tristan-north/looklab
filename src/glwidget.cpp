@@ -2,6 +2,7 @@
 #include "rman.h"
 #include "shaders.h"
 #include "tif.h"
+#include "geo.h"
 #include "perftimer.h"
 
 #include <QMouseEvent>
@@ -128,35 +129,28 @@ void GLWidget::initializeGL()
     m_viewMatrixLoc = glGetUniformLocation(m_programDefault, "u_view");
     m_projMatrixLoc = glGetUniformLocation(m_programDefault, "u_proj");
 
-    //Mesh mesh("../testGeo/testCube3.abc");
-//    Mesh mesh("../testGeo/pika_kakashi.abc");
-    Mesh mesh("../testGeo/buddha_light_autouvs.abc");
-//    Mesh mesh("../testGeo/plane_uvs.abc");
-    m_numTris = mesh.m_numIndices / 3;
-
-    std::vector<QVector3D> normals(mesh.m_numPositions);
-    computeNormals(&mesh, normals.data());
+    m_numTris = geo::getNumIndices() / 3;
 
     // Create buffers containing the geo data
     uint posBuffer;
     glGenBuffers(1, &posBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, posBuffer);
-    glBufferData(GL_ARRAY_BUFFER, mesh.m_numPositions * sizeof(QVector3D), mesh.m_positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, geo::getNumPoints() * sizeof(QVector3D), geo::getPositions(), GL_STATIC_DRAW);
 
     uint normalsBuffer;
     glGenBuffers(1, &normalsBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalsBuffer);
-    glBufferData(GL_ARRAY_BUFFER, mesh.m_numPositions * sizeof(QVector3D), normals.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, geo::getNumPoints() * sizeof(QVector3D), geo::getNormals(), GL_STATIC_DRAW);
 
     uint uvsBuffer;
     glGenBuffers(1, &uvsBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvsBuffer);
-    glBufferData(GL_ARRAY_BUFFER, mesh.m_numPositions * sizeof(QVector2D), mesh.m_UVs, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, geo::getNumPoints() * sizeof(QVector2D), geo::getUVs(), GL_STATIC_DRAW);
 
     uint indexBuffer;
     glGenBuffers(1, &indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.m_numIndices * sizeof(uint), mesh.m_indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, geo::getNumIndices() * sizeof(uint), geo::getIndices(), GL_STATIC_DRAW);
 
     // Even tho we only care about 3D, openGL will pad the ubo as a vec4
     QVector4D strokes[50];
@@ -359,40 +353,6 @@ void GLWidget::keyPressEvent(QKeyEvent *event) {
     }
     else
         QWidget::keyPressEvent(event);
-}
-
-void GLWidget::computeNormals(Mesh* mesh, QVector3D* normals)
-{
-    struct tri {
-        uint v1;
-        uint v2;
-        uint v3;
-    };
-
-    PerfTimer perfTimer;
-
-    const tri* tris = reinterpret_cast<const tri*>(mesh->m_indices);
-
-    for (uint i = 0; i < m_numTris; i++) {
-
-        QVector3D v1 = mesh->m_positions[tris[i].v1] - mesh->m_positions[tris[i].v2];
-        QVector3D v2 = mesh->m_positions[tris[i].v3] - mesh->m_positions[tris[i].v2];
-
-        QVector3D normal = QVector3D::crossProduct(v1, v2);
-        normal.normalize();
-
-        // add this normal to each vertex's normal
-        normals[tris[i].v1] += normal;
-        normals[tris[i].v2] += normal;
-        normals[tris[i].v3] += normal;
-    }
-
-    // normalize the normals for each vertex
-    for (uint i = 0; i < mesh->m_numPositions; ++i) {
-        normals[i].normalize();
-    }
-
-    perfTimer.printElapsedMSec("Time to generate normals: ");
 }
 
 void GLWidget::updateCamXform(bool alsoUpdateRman) {

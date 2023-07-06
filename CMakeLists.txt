@@ -23,7 +23,7 @@ add_executable(looklab
         src/mainwindow.h
         src/mesh.cpp
         src/mesh.h
-        src/shaders.h src/tif.cpp src/tif.h src/perftimer.h src/displaydriver.cpp src/displaydriver.h src/rman.cpp src/rman.h src/common.h src/renderview.cpp src/renderview.h)
+        src/shaders.h src/tif.cpp src/tif.h src/perftimer.h src/displaydriver.cpp src/displaydriver.h src/rman.cpp src/rman.h src/common.h src/renderview.cpp src/renderview.h src/geo.cpp src/geo.h)
 
 
 target_link_libraries(looklab Qt5::Widgets)

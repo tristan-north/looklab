@@ -1,11 +1,13 @@
 #include "rman.h"
 #include "common.h"
+#include "geo.h"
 #include "displaydriver.h"
+#include <QMatrix>
 #include <RixPredefinedStrings.hpp>
 #include <RixSceneGraph.h>
 #include <stdio.h>
-#include <QMatrix>
 
+typedef const RtPoint3 pFloat3[8];
 namespace rsg = rman::scenegraph;
 
 rsg::Scene* g_scene = nullptr;
@@ -44,20 +46,62 @@ void createScene(RixSGManager* sgmngr, stats::Session& statsSession) {
     }
 
     // Create a sphere
-    rsg::Quadric* sphere = g_scene->CreateQuadric(RtUString("sphere"));
+    //    rsg::Quadric* sphere = g_scene->CreateQuadric(RtUString("sphere"));
+    //    {
+    //        sphere->SetMaterial(material);
+    //        RtMatrix4x4 transform{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+    //        transform.Translate(0, 0.5, 0);
+    //        transform.Scale(0.5, 0.5, 0.5);
+    //        transform.Rotate(-90, 1, 0, 0);
+    //        sphere->SetTransform(transform);
+    //        g_scene->Root()->AddChild(sphere);
+    //    }
+
+/*
+    // Create box
     {
-        sphere->SetMaterial(material);
-        RtMatrix4x4 transform{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-        transform.Translate(0, 0.5, 0);
-        transform.Scale(0.5, 0.5, 0.5);
-        transform.Rotate(-90, 1, 0, 0);
-        sphere->SetTransform(transform);
-        g_scene->Root()->AddChild(sphere);
+        // There's an array element for each face which is the number of verts of that face.
+        int32_t const boxNVertices[2] = {4, 4};
+        // Each element of the array is an index to the positions array
+        int32_t const boxVertices[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+        pFloat3 shortBoxPoints = {
+            {1.0f, 0.0f, -1.0f},   {-1.0f, 0.0f, -1.0f},  {-1.0f, 0.0f, 1.0f},
+            {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f, -1.0f},   {-1.0f, 1.0f, -1.0f},
+            {-1.0f, 1.0f, 1.0f},  {1.0f, 1.0f, 1.0f},
+        };
+        rsg::Mesh* shortBox = g_scene->CreateMesh(RtUString("shortBox"));
+        // Define args: num polys, num vec3 positions, num elements in index array
+        shortBox->Define(2, 8, 8);
+        RtPrimVarList primvars = shortBox->GetPrimVars();
+        primvars.SetPointDetail(Rix::k_P, shortBoxPoints, RtDetailType::k_vertex);
+        primvars.SetIntegerDetail(Rix::k_Ri_nvertices, boxNVertices, RtDetailType::k_uniform);
+        primvars.SetIntegerDetail(Rix::k_Ri_vertices, boxVertices, RtDetailType::k_facevarying);
+        shortBox->SetPrimVars(primvars);
+        shortBox->SetMaterial(material);
+        g_scene->Root()->AddChild(shortBox);
+    }
+*/
+    {
+        int numFaces = geo::getNumIndices()/3;
+        int32_t* numVerticesPerFace = (int32_t*)malloc(sizeof(int32_t) * numFaces);
+        for(int i=0; i<numFaces; ++i) {
+            numVerticesPerFace[i] = 3;
+        }
+
+        rsg::Mesh* mesh = g_scene->CreateMesh(RtUString("mesh"));
+        mesh->Define(numFaces, geo::getNumPoints(), geo::getNumIndices());
+        RtPrimVarList primvars = mesh->GetPrimVars();
+        primvars.SetPointDetail(Rix::k_P, (RtFloat3*)geo::getPositions(), RtDetailType::k_vertex);
+        primvars.SetIntegerDetail(Rix::k_Ri_nvertices, numVerticesPerFace, RtDetailType::k_uniform);
+        primvars.SetIntegerDetail(Rix::k_Ri_vertices, (int32_t *)geo::getIndices(), RtDetailType::k_facevarying);
+        mesh->SetPrimVars(primvars);
+        g_scene->Root()->AddChild(mesh);
     }
 
+
     // Create render camera and parent under a group
-//    g_cameraGroup = g_scene->CreateGroup(RtUString("g_cameraGroup"));
-//    g_scene->Root()->AddChild(g_cameraGroup);
+    //    g_cameraGroup = g_scene->CreateGroup(RtUString("g_cameraGroup"));
+    //    g_scene->Root()->AddChild(g_cameraGroup);
     g_camera = g_scene->CreateCamera(RtUString("camera"));
     {
         rsg::Shader proj(rsg::ShaderType::k_Projection, RtUString("PxrPerspective"),
@@ -89,8 +133,8 @@ void rmanSetCamXform(const QMatrix4x4& xformMat) {
     {
         rsg::Scene::ScopedEdit edit(g_scene);
         RtMatrix4x4 transform;
-        memcpy(transform.m, xformMat.inverted().data(), 16*sizeof(float));
-        transform.Scale(1.0f, 1.0f, -1.0f);  // Z axis is different for openGL cam
+        memcpy(transform.m, xformMat.inverted().data(), 16 * sizeof(float));
+        transform.Scale(1.0f, 1.0f, -1.0f); // Z axis is different for openGL cam
         g_camera->SetTransform(transform);
     }
 }
