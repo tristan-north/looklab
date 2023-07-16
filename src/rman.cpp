@@ -1,7 +1,7 @@
 #include "rman.h"
 #include "common.h"
-#include "geo.h"
 #include "displaydriver.h"
+#include "geo.h"
 #include <QMatrix>
 #include <RixPredefinedStrings.hpp>
 #include <RixSceneGraph.h>
@@ -12,6 +12,7 @@ namespace rsg = rman::scenegraph;
 
 rsg::Scene* g_scene = nullptr;
 rsg::Camera* g_camera = nullptr;
+rsg::Material* g_material = nullptr;
 
 void createScene(RixSGManager* sgmngr, stats::Session& statsSession) {
     // Create the scene
@@ -27,24 +28,59 @@ void createScene(RixSGManager* sgmngr, stats::Session& statsSession) {
     options.SetFloat(Rix::k_Ri_FormatPixelAspectRatio, 1.0f);
     g_scene->SetOptions(options);
 
+    rsg::Shader integrator(rsg::ShaderType::k_Integrator, RtUString("PxrPathTracer"),
+                           RtUString("integrator"));
+    g_scene->SetIntegrator(1, &integrator);
     // Create a simple checker bxdf
-    rsg::Material* material = g_scene->CreateMaterial(US_NULL);
+    //    rsg::Material* material = g_scene->CreateMaterial(US_NULL);
+    //    {
+    //        rsg::Shader manifold(rsg::ShaderType::k_Pattern, RtUString("PxrManifold2D"),
+    //                             RtUString("manifold"));
+    //        manifold.params.SetFloat(RtUString("scaleS"), 4);
+    //        manifold.params.SetFloat(RtUString("scaleT"), 2);
+    //        rsg::Shader checker(rsg::ShaderType::k_Pattern, RtUString("PxrChecker"),
+    //                            RtUString("checker"));
+    //        checker.params.SetColor(RtUString("colorA"), RtColorRGB(1, 1, 0));
+    //        checker.params.SetColor(RtUString("colorB"), RtColorRGB(0, 1, 1));
+    //        checker.params.SetStructReference(RtUString("manifold"),
+    //        RtUString("manifold:result")); rsg::Shader diffuse(rsg::ShaderType::k_Bxdf,
+    //        RtUString("PxrDiffuse"), RtUString("diffuse"));
+    //        diffuse.params.SetColorReference(RtUString("diffuseColor"),
+    //        RtUString("checker:resultRGB")); rsg::Shader const bxdf[3] = {manifold, checker,
+    //        diffuse}; material->SetBxdf(3, bxdf);
+    //    }
+
+    g_material = g_scene->CreateMaterial(US_NULL);
     {
-        rsg::Shader manifold(rsg::ShaderType::k_Pattern, RtUString("PxrManifold2D"),
-                             RtUString("manifold"));
-        manifold.params.SetFloat(RtUString("scaleS"), 4);
-        manifold.params.SetFloat(RtUString("scaleT"), 2);
-        rsg::Shader checker(rsg::ShaderType::k_Pattern, RtUString("PxrChecker"),
-                            RtUString("checker"));
-        checker.params.SetColor(RtUString("colorA"), RtColorRGB(1, 1, 0));
-        checker.params.SetColor(RtUString("colorB"), RtColorRGB(0, 1, 1));
-        checker.params.SetStructReference(RtUString("manifold"), RtUString("manifold:result"));
         rsg::Shader diffuse(rsg::ShaderType::k_Bxdf, RtUString("PxrDiffuse"), RtUString("diffuse"));
-        diffuse.params.SetColorReference(RtUString("diffuseColor"), RtUString("checker:resultRGB"));
-        rsg::Shader const bxdf[3] = {manifold, checker, diffuse};
-        material->SetBxdf(3, bxdf);
+        diffuse.params.SetColor(RtUString("diffuseColor"), RtColorRGB(1, 0, 0));
+        rsg::Shader const bxdf[] = {diffuse};
+        g_material->SetBxdf(1, bxdf);
     }
 
+    // LIGHTS
+    {
+        rsg::AnalyticLight* light = g_scene->CreateAnalyticLight(RtUString("rectLight"));
+        rsg::Shader lightShader(rsg::ShaderType::k_Light, RtUString("PxrRectLight"), RtUString("rectLight"));
+        lightShader.params.SetFloat(RtUString("intensity"), 25.8f);
+        light->SetLight(1, &lightShader);
+        RtMatrix4x4 transform{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+        transform.Translate(0, 3.5, 0);
+        transform.Rotate(90, 1, 0, 0);
+        transform.Scale(1, 1, 1);
+        light->SetTransform(transform);
+        g_scene->Root()->AddChild(light);
+    }
+    {
+        rsg::AnalyticLight* light = g_scene->CreateAnalyticLight(RtUString("domeLight"));
+        rsg::Shader lightShader(rsg::ShaderType::k_Light, RtUString("PxrDomeLight"), RtUString("domeLight"));
+        lightShader.params.SetFloat(RtUString("intensity"), 0.3f);
+        light->SetLight(1, &lightShader);
+        g_scene->Root()->AddChild(light);
+        RtParamList parmList;
+        parmList.SetInteger(RtUString("visibility:camera"), 0);
+        light->SetAttributes(parmList);
+    }
     // Create a sphere
     //    rsg::Quadric* sphere = g_scene->CreateQuadric(RtUString("sphere"));
     //    {
@@ -57,47 +93,49 @@ void createScene(RixSGManager* sgmngr, stats::Session& statsSession) {
     //        g_scene->Root()->AddChild(sphere);
     //    }
 
-/*
-    // Create box
+    /*
+        // Create box
+        {
+            // There's an array element for each face which is the number of verts of that face.
+            int32_t const boxNVertices[2] = {4, 4};
+            // Each element of the array is an index to the positions array
+            int32_t const boxVertices[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+            pFloat3 shortBoxPoints = {
+                {1.0f, 0.0f, -1.0f},   {-1.0f, 0.0f, -1.0f},  {-1.0f, 0.0f, 1.0f},
+                {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f, -1.0f},   {-1.0f, 1.0f, -1.0f},
+                {-1.0f, 1.0f, 1.0f},  {1.0f, 1.0f, 1.0f},
+            };
+            rsg::Mesh* shortBox = g_scene->CreateMesh(RtUString("shortBox"));
+            // Define args: num polys, num vec3 positions, num elements in index array
+            shortBox->Define(2, 8, 8);
+            RtPrimVarList primvars = shortBox->GetPrimVars();
+            primvars.SetPointDetail(Rix::k_P, shortBoxPoints, RtDetailType::k_vertex);
+            primvars.SetIntegerDetail(Rix::k_Ri_nvertices, boxNVertices, RtDetailType::k_uniform);
+            primvars.SetIntegerDetail(Rix::k_Ri_vertices, boxVertices, RtDetailType::k_facevarying);
+            shortBox->SetPrimVars(primvars);
+            shortBox->SetMaterial(material);
+            g_scene->Root()->AddChild(shortBox);
+        }
+    */
     {
-        // There's an array element for each face which is the number of verts of that face.
-        int32_t const boxNVertices[2] = {4, 4};
-        // Each element of the array is an index to the positions array
-        int32_t const boxVertices[8] = {0, 1, 2, 3, 4, 5, 6, 7};
-        pFloat3 shortBoxPoints = {
-            {1.0f, 0.0f, -1.0f},   {-1.0f, 0.0f, -1.0f},  {-1.0f, 0.0f, 1.0f},
-            {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f, -1.0f},   {-1.0f, 1.0f, -1.0f},
-            {-1.0f, 1.0f, 1.0f},  {1.0f, 1.0f, 1.0f},
-        };
-        rsg::Mesh* shortBox = g_scene->CreateMesh(RtUString("shortBox"));
-        // Define args: num polys, num vec3 positions, num elements in index array
-        shortBox->Define(2, 8, 8);
-        RtPrimVarList primvars = shortBox->GetPrimVars();
-        primvars.SetPointDetail(Rix::k_P, shortBoxPoints, RtDetailType::k_vertex);
-        primvars.SetIntegerDetail(Rix::k_Ri_nvertices, boxNVertices, RtDetailType::k_uniform);
-        primvars.SetIntegerDetail(Rix::k_Ri_vertices, boxVertices, RtDetailType::k_facevarying);
-        shortBox->SetPrimVars(primvars);
-        shortBox->SetMaterial(material);
-        g_scene->Root()->AddChild(shortBox);
-    }
-*/
-    {
-        int numFaces = geo::getNumIndices()/3;
+        int numFaces = geo::getNumIndices() / 3;
         int32_t* numVerticesPerFace = (int32_t*)malloc(sizeof(int32_t) * numFaces);
-        for(int i=0; i<numFaces; ++i) {
+        for (int i = 0; i < numFaces; ++i) {
             numVerticesPerFace[i] = 3;
         }
 
         rsg::Mesh* mesh = g_scene->CreateMesh(RtUString("mesh"));
+        mesh->SetMaterial(g_material);
         mesh->Define(numFaces, geo::getNumPoints(), geo::getNumIndices());
         RtPrimVarList primvars = mesh->GetPrimVars();
         primvars.SetPointDetail(Rix::k_P, (RtFloat3*)geo::getPositions(), RtDetailType::k_vertex);
+        primvars.SetNormalDetail(Rix::k_N, (RtNormal3*)geo::getNormals(), RtDetailType::k_vertex);
         primvars.SetIntegerDetail(Rix::k_Ri_nvertices, numVerticesPerFace, RtDetailType::k_uniform);
-        primvars.SetIntegerDetail(Rix::k_Ri_vertices, (int32_t *)geo::getIndices(), RtDetailType::k_facevarying);
+        primvars.SetIntegerDetail(Rix::k_Ri_vertices, (int32_t*)geo::getIndices(),
+                                  RtDetailType::k_facevarying);
         mesh->SetPrimVars(primvars);
         g_scene->Root()->AddChild(mesh);
     }
-
 
     // Create render camera and parent under a group
     //    g_cameraGroup = g_scene->CreateGroup(RtUString("g_cameraGroup"));
@@ -139,18 +177,38 @@ void rmanSetCamXform(const QMatrix4x4& xformMat) {
     }
 }
 
+void rmanSetAlbedo(float value) {
+    {
+        rsg::Scene::ScopedEdit edit(g_scene);
+        rsg::Shader pxrSurf(rsg::ShaderType::k_Bxdf, RtUString("LamaDiffuse"), RtUString("pixSurf"));
+        pxrSurf.params.SetColor(RtUString("diffuseColor"), RtColorRGB(value, value, value));
+        rsg::Shader const bxdf[] = {pxrSurf};
+        g_material->SetBxdf(1, bxdf);
+    }
+}
+
 void startRender() {
     printf("Starting Render.\n");
     registerDisplayDriver();
 
     // Must be created before PRManBegin
-    std::string sessionName("SG Simple Edit");
+    std::string sessionName("Looklab Stats Session");
     stats::Session& statsSession = stats::AddSession(sessionName);
 
     // Wrap the RenderMan part of the process in PRManBegin/End
     RixContext* ctx = RixGetContext();
     RixRiCtl* rictl = (RixRiCtl*)ctx->GetRixInterface(k_RixRiCtl);
-    rictl->PRManBegin(0, nullptr);
+
+    const int numArgs = 5;
+    char* args[numArgs];
+
+    args[0] = _strdup("");
+    args[1] = _strdup("-loglevel");
+    args[2] = _strdup("4");
+    args[3] = _strdup("-statsconfig");
+    args[4] = _strdup("stats_disable.ini");
+
+    rictl->PRManBegin(numArgs, args);
 
     Ri* rixRi = rictl->GetRiCtx();
     rixRi->ErrorHandler(RiErrorPrint);

@@ -20,6 +20,7 @@ int main(int argc, char* argv[])
     QCoreApplication::setApplicationName("Looklab");
 
     MainWindow mainWindow;
+    mainWindow.resize(800+800+500, 800+500);
     mainWindow.show();
 
     QTimer::singleShot(0, nullptr, startRender);

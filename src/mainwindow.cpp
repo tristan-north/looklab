@@ -1,24 +1,32 @@
 #include "mainwindow.h"
 #include "glwidget.h"
 #include "renderview.h"
+#include "parameters.h"
+#include "nodegraph.h"
 #include <QKeyEvent>
 #include <QLabel>
 #include <QHBoxLayout>
 
 MainWindow::MainWindow() {
     QWidget* centralWidget = new QWidget(this);
-    centralWidget->setStyleSheet("background-color: #202020;");
+    centralWidget->setStyleSheet("background-color: rgb(35,35,35);");
 
-    RenderView *renderView = new RenderView();
-    GLWidget *glWidget = new GLWidget(this);
+    RenderView* renderView = new RenderView();
+    GLWidget* glWidget = new GLWidget(this);
+    Parameters* parameters = new Parameters(this);
+    Nodegraph* nodegraph = new Nodegraph(this);
 
-    QHBoxLayout *layout = new QHBoxLayout;
-    layout->addWidget(renderView);
-    layout->addWidget(glWidget);
-    layout->setSpacing(4);
-    layout->setContentsMargins(10, 10, 10, 10);
+    QVBoxLayout* vbox = new QVBoxLayout;
+    QHBoxLayout* hbox = new QHBoxLayout;
+    vbox->addLayout(hbox);
+    hbox->addWidget(renderView);
+    hbox->addWidget(glWidget);
+    hbox->addWidget(parameters);
+//    hbox->setSpacing(4);
+//    hbox->setContentsMargins(10, 10, 10, 10);
+    vbox->addWidget(nodegraph);
 
-    centralWidget->setLayout(layout);
+    centralWidget->setLayout(vbox);
     setCentralWidget(centralWidget);
 }
 

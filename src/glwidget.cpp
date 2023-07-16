@@ -20,7 +20,10 @@ GLWidget::GLWidget(QWidget* parent)
     : QOpenGLWidget(parent)
 {
     m_frameTimeLabel = new QLabel("", this);
-    m_frameTimeLabel->setStyleSheet("QLabel { color : white; }");
+    m_frameTimeLabel->setStyleSheet("color: white; background-color: transparent;");
+    m_frameTimeLabel->setFixedSize(55, 15);
+    m_frameTimeLabel->setAlignment(Qt::AlignRight | Qt::AlignBottom);
+    m_frameTimeLabel->setAutoFillBackground(false);
 
     setUpdateBehavior(QOpenGLWidget::PartialUpdate); // Tell Qt not to clear the buffers
 
@@ -261,7 +264,7 @@ void GLWidget::paintGL()
     printGlErrors("glDrawArrays");
 
     glFinish(); // This blocks until all gl commands have finished. Using for frame timing.
-    m_frameTimeLabel->setText(QString::number(m_frameTimer.elapsedMSec(), 'f', 2));
+    m_frameTimeLabel->setText(QString::number(m_frameTimer.elapsedMSec(), 'f', 2).append(" ms"));
 }
 
 void GLWidget::resizeGL(int w, int h)
