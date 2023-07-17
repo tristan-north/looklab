@@ -32,8 +32,8 @@ void loadAlembic() {
     // Mesh mesh("../testGeo/testCube3.abc");
 //         Mesh mesh("../testGeo/pika_kakashi.abc");
     //    Mesh mesh("../testGeo/plane_uvs.abc");
-//    const char filepath[] = "../testGeo/buddha_light_autouvs.abc";
-    const char filepath[] = "../testGeo/pika_kakashi.abc";
+    const char filepath[] = "../testGeo/buddha_light_autouvs.abc";
+//    const char filepath[] = "../testGeo/pika_kakashi.abc";
 //    const char filepath[] = "../testGeo/testCube3.abc";
 
     IArchive archive(Alembic::AbcCoreOgawa::ReadArchive(), filepath);

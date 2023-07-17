@@ -1,4 +1,5 @@
 #include "parameters.h"
+#include "ParamWidgets/sliderwidget.h"
 #include "rman.h"
 #include <QLabel>
 #include <QSlider>
@@ -12,9 +13,10 @@ struct ArgsParam {
 };
 
 void albedoChanged(float value) {
-    rmanSetAlbedo(value/100);
+    rmanSetAlbedo(value);
 }
 
+/*
 int getNumParams(const char* argsBuf, const int argsBufSize) {
     const char* pBuf = argsBuf;
     int paramCount = 0;
@@ -28,6 +30,7 @@ int getNumParams(const char* argsBuf, const int argsBufSize) {
     }
     return paramCount;
 }
+
 
 int parseArgs(ArgsParam*& argsParams) {
     char pathFromTree[] = R"(\lib\plugins\Args\LamaDiffuse.args)";
@@ -65,6 +68,7 @@ int parseArgs(ArgsParam*& argsParams) {
 
     return numParams;
 }
+ */
 
 Parameters::Parameters(QWidget* parent) : QFrame(parent) {
     setMinimumWidth(500);
@@ -73,19 +77,27 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
 
     setStyleSheet("color: rgb(200,200,200); font-size:14px;");
 
-    QSlider* slider = new QSlider(Qt::Horizontal, this);
-    QSlider::connect(slider, &QSlider::valueChanged, albedoChanged);
+//    QSlider* slider = new QSlider(Qt::Horizontal, this);
+//    QSlider::connect(slider, &QSlider::valueChanged, albedoChanged);
 
     QVBoxLayout* vbox = new QVBoxLayout;
+//    vbox->addWidget(slider);
+
+    SliderWidget* slider = new SliderWidget("param1", this);
+    connect(slider, &SliderWidget::paramChanged, albedoChanged);
     vbox->addWidget(slider);
 
-    ArgsParam* argsParams;
-    int numParams = parseArgs(argsParams);
+    SliderWidget* slider2 = new SliderWidget("longish param", this);
+    connect(slider2, &SliderWidget::paramChanged, albedoChanged);
+    vbox->addWidget(slider2);
 
-    for(int i=0; i<numParams; ++i) {
-        QLabel *label = new QLabel(argsParams[i].name, this);
-        vbox->addWidget(label);
-    }
+//    ArgsParam* argsParams;
+//    int numParams = parseArgs(argsParams);
+//
+//    for(int i=0; i<numParams; ++i) {
+//        QLabel *label = new QLabel(argsParams[i].name, this);
+//        vbox->addWidget(label);
+//    }
 
     vbox->addStretch();
     setLayout(vbox);
