@@ -28,6 +28,7 @@ MainWindow::MainWindow() {
 
     centralWidget->setLayout(vbox);
     setCentralWidget(centralWidget);
+    setFocus();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {

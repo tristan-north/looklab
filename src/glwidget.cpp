@@ -20,8 +20,8 @@ GLWidget::GLWidget(QWidget* parent)
     : QOpenGLWidget(parent)
 {
     m_frameTimeLabel = new QLabel("", this);
-    m_frameTimeLabel->setStyleSheet("color: white; background-color: transparent;");
-    m_frameTimeLabel->setFixedSize(55, 15);
+    m_frameTimeLabel->setStyleSheet("color: rgb(100,100,100); background-color: transparent;font-size:11px;");
+    m_frameTimeLabel->setFixedSize(55, 20);
     m_frameTimeLabel->setAlignment(Qt::AlignRight | Qt::AlignBottom);
     m_frameTimeLabel->setAutoFillBackground(false);
 

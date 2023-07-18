@@ -7,10 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct ArgsParam {
-    char name[64];
-    char label[64];
-};
+//struct ArgsParam {
+//    char name[64];
+//    char label[64];
+//};
 
 void albedoChanged(float value) {
     rmanSetAlbedo(value);
@@ -75,7 +75,14 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
     setFrameStyle(QFrame::Panel);
     setLineWidth(1);
 
-    setStyleSheet("color: rgb(200,200,200); font-size:14px;");
+    setStyleSheet(R"(
+        QFrame {border-color: rgb(0,0,0); border-style: solid; border-width: 1px; border-radius:6px;}
+        QLabel {color: rgb(150, 150, 150); font-size:12px; border-width: 0px;}
+        QLineEdit {color: rgb(220, 220, 220); font-size:12px;
+                    background-color: rgb(30,30,30);
+                    border-style: solid; border-color: rgb(45,45,45); border-width:1px;
+                    border-radius:4px;}
+        )");
 
 //    QSlider* slider = new QSlider(Qt::Horizontal, this);
 //    QSlider::connect(slider, &QSlider::valueChanged, albedoChanged);
