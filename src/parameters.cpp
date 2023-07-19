@@ -1,5 +1,5 @@
 #include "parameters.h"
-#include "ParamWidgets/sliderwidget.h"
+#include "ParamWidgets/sliderparam.h"
 #include "rman.h"
 #include <QLabel>
 #include <QSlider>
@@ -72,11 +72,9 @@ int parseArgs(ArgsParam*& argsParams) {
 
 Parameters::Parameters(QWidget* parent) : QFrame(parent) {
     setMinimumWidth(500);
-    setFrameStyle(QFrame::Panel);
-    setLineWidth(1);
 
     setStyleSheet(R"(
-        QFrame {border-color: rgb(0,0,0); border-style: solid; border-width: 1px; border-radius:6px;}
+        QFrame {border-color: rgb(0,0,0); border-style: solid; border-width: 1px; border-radius:4px;}
         QLabel {color: rgb(150, 150, 150); font-size:12px; border-width: 0px;}
         QLineEdit {color: rgb(220, 220, 220); font-size:12px;
                     background-color: rgb(30,30,30);
@@ -84,18 +82,14 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
                     border-radius:4px;}
         )");
 
-//    QSlider* slider = new QSlider(Qt::Horizontal, this);
-//    QSlider::connect(slider, &QSlider::valueChanged, albedoChanged);
-
     QVBoxLayout* vbox = new QVBoxLayout;
-//    vbox->addWidget(slider);
 
-    SliderWidget* slider = new SliderWidget("param1", this);
-    connect(slider, &SliderWidget::paramChanged, albedoChanged);
+    SliderParam* slider = new SliderParam("param1", this);
+    connect(slider, &SliderParam::paramChanged, albedoChanged);
     vbox->addWidget(slider);
 
-    SliderWidget* slider2 = new SliderWidget("longish param", this);
-    connect(slider2, &SliderWidget::paramChanged, albedoChanged);
+    SliderParam* slider2 = new SliderParam("longish param", this);
+    connect(slider2, &SliderParam::paramChanged, albedoChanged);
     vbox->addWidget(slider2);
 
 //    ArgsParam* argsParams;

@@ -7,7 +7,7 @@ Nodegraph::Nodegraph(QWidget* parent) : QFrame(parent) {
 //    setFrameStyle(QFrame::Panel);
 //    setLineWidth(1);
     setStyleSheet(R"(
-        QFrame {border-color: rgb(0,0,0); border-style: solid; border-width: 1px; border-radius:6px;}
+        QFrame {border-color: rgb(0,0,0); border-style: solid; border-width: 1px; border-radius:4px;}
         )");
 
     QLabel* label = new QLabel("Nodegraph", this);
