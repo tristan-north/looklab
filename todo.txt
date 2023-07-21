@@ -1,4 +1,7 @@
+o Move object creation from inside slider painting function to constructor and member variables.
+o Add a visual element connecting the slider value to the bar
 o Making custom slider. Need to clamp 0-1 and recieve signal when text box value changes.
+o Choose a font
 
 Texture Baking
 o Don't allocate pixels array for bake every bake

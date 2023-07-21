@@ -1,28 +1,35 @@
 #include "sliderparam.h"
 #include <QLabel>
 #include <QLineEdit>
-#include <QSlider>
-#include <QVBoxLayout>
-#include <QPainter>
 #include <QMouseEvent>
-
+#include <QPainter>
+#include <QPainterPath>
+#include <QVBoxLayout>
 
 SliderWidget::SliderWidget(QWidget* parent) : QWidget(parent) {
-};
-
+}
 
 void SliderWidget::paintEvent(QPaintEvent *event) {
-        QPainter painter(this);
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QRect bounds = this->rect();
 
-        QPen pen(Qt::black, 1, Qt::SolidLine);
-        painter.setPen(pen);
+    // Draw frame
+//    painter.setBrush(Qt::NoBrush);
+    QBrush frameBrush(QColor(30, 30, 30), Qt::SolidPattern);
+    painter.setBrush(frameBrush);
+    painter.setPen(QColor(45,45,45));
+    QRectF frameRect(0.5, 3.5, bounds.width()-1, bounds.height()-7);
+    painter.drawRoundedRect(frameRect, 4, 4);
 
-        QBrush brush(QColor(100,100,200), Qt::SolidPattern);
-        painter.setBrush(brush);
+    // Draw value slider
+    QPainterPath path;
+    path.addRoundedRect(frameRect, 4, 4);
+    painter.setClipPath(path);
+    QBrush brush(QColor(60, 70, 120), Qt::SolidPattern);
+    painter.setBrush(brush);
+    painter.drawRect(0, 0, m_value*bounds.width(), height());  // This would normally cover the entire widget
 
-        QRect bounds = this->rect();
-        QRect drawRect(0, 4, m_value*bounds.width(), 15);
-        painter.drawRect(drawRect);
 }
 
 void SliderWidget::mousePressEvent(QMouseEvent *event) {
@@ -35,7 +42,6 @@ void SliderWidget::mouseMoveEvent(QMouseEvent *event) {
         update();
         emit sliderMoved(m_value);
 }
-
 
 SliderParam::SliderParam(const QString name, QWidget* parent) : QWidget(parent) {
     QHBoxLayout* hbox = new QHBoxLayout;
