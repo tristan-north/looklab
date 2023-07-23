@@ -33,6 +33,7 @@ class SliderWidget : public QWidget {
 
 public:
     SliderWidget(QWidget* parent);
+    void setValue(float newValue);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -44,4 +45,6 @@ signals:
 
   private:
     float m_value;
+    QBrush m_frameBrush;
+    QBrush m_sliderBrush;
 };

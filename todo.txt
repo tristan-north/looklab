@@ -1,7 +1,4 @@
-o Move object creation from inside slider painting function to constructor and member variables.
-o Add a visual element connecting the slider value to the bar
-o Making custom slider. Need to clamp 0-1 and recieve signal when text box value changes.
-o Choose a font
+
 
 Texture Baking
 o Don't allocate pixels array for bake every bake
@@ -14,7 +11,7 @@ o Assert everywhere
 o Currently if rotating with alt+click and let go of alt it starts painting.
 o Clean up Alembic reading, especially UVs. May be leaking memory.
 o Currently rendered image is updated on a timer, maybe better to do it with a signal, but limit the signals to no more than 30 times/sec.
-o Mipmap the textures
+o Mipmap the textures for use in prman
 o Add compression to texture
 o Automatically set near and far clip to get max res out of depth buffer
 o Check alembics with ngons etc
