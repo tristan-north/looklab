@@ -5,3 +5,4 @@ katana*/
 .cache/
 .git/
 bin/
+compile_commands.json
