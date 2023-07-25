@@ -1,0 +1,7 @@
+*build*/
+testGeo/
+katana*/
+.idea/
+.cache/
+.git/
+bin/

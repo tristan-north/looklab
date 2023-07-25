@@ -1,3 +1,6 @@
+Currently
+o Reading in color default value in args file.
+
 
 
 Texture Baking

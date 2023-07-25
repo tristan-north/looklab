@@ -12,6 +12,8 @@ include_directories(${IMATH_INCLUDEDIR})
 include_directories(${ALEMBIC_INCLUDEDIR})
 include_directories("${RMANTREE}include")
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
+
 # Can't use debug -MDd in debug build as it's incompatible with prman lib.
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
 

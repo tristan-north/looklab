@@ -19,12 +19,10 @@ int main(int argc, char* argv[])
     QApplication app(argc, argv);
     QCoreApplication::setApplicationName("Looklab");
 
-    int fontId = QFontDatabase::addApplicationFont("fonts/Inter-Regular.ttf");
+    QString fontPath = QCoreApplication::applicationDirPath();
+    fontPath += "/fonts/Inter-Regular.ttf";
+    int fontId = QFontDatabase::addApplicationFont(fontPath);
     assert(fontId != -1 && "Failed to load font.");
-//    QString fontName = QFontDatabase::applicationFontFamilies(fontId).at(0);
-//    printf("Font: %s\n", fontName.toStdString().c_str());
-//    printf("fontId %d\n", fontId);
-//    qDebug() << fontName;
 
     MainWindow mainWindow;
     mainWindow.resize(800+800+500, 800+500);
