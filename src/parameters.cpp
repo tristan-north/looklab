@@ -32,8 +32,18 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
 //    connect(slider2, &SliderParam::paramChanged, albedoChanged);
 //    vbox->addWidget(slider2);
 
-   ArgsInfo* argsInfo;
-   int numParams = parseArgsFile(argsInfo);
+    ArgsInfo* argsInfo;
+    int numParams = parseArgsFile(argsInfo);
+    for (int i=0; i<numParams; ++i) {
+        if(argsInfo[i].type == arg_type::type_float) {
+            SliderParam* slider = new SliderParam(argsInfo[i].name, this);
+            vbox->addWidget(slider);
+        }
+        else {
+            QLabel *label = new QLabel(argsInfo[i].name, this);
+            vbox->addWidget(label);
+        }
+    }
 
 //    for(int i=0; i<numParams; ++i) {
 //        QLabel *label = new QLabel(argsParams[i].name, this);
