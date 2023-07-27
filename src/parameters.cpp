@@ -1,4 +1,5 @@
 #include "parameters.h"
+#include "ParamWidgets/colorparam.h"
 #include "ParamWidgets/sliderparam.h"
 #include "argsfile.h"
 #include "rman.h"
@@ -14,8 +15,8 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
 
     setStyleSheet(R"(
         QFrame {border-color: rgb(0,0,0); border-style: solid; border-width: 1px; border-radius:4px;}
-        QLabel {color: rgb(150, 150, 150); font:13px 'Inter'; border-width: 0px;}
-        QLineEdit {color: rgb(220, 220, 220); font:13px 'Inter';
+        QLabel {color: rgb(150, 150, 150); font:15px 'Inter'; border-width: 0px;}
+        QLineEdit {color: rgb(220, 220, 220); font:15px 'Inter';
                     background-color: rgb(30,30,30);
                     border-style: solid; border-color: rgb(45,45,45); border-width:1px;
                     border-radius:4px;
@@ -35,14 +36,39 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
     ArgsInfo* argsInfo;
     int numParams = parseArgsFile(argsInfo);
     for (int i=0; i<numParams; ++i) {
-        if(argsInfo[i].type == arg_type::type_float) {
-            SliderParam* slider = new SliderParam(argsInfo[i].name, this);
-            vbox->addWidget(slider);
+        switch (argsInfo[i].type) {
+            case type_float: {
+                SliderParam* slider = new SliderParam(argsInfo[i].name, this);
+                vbox->addWidget(slider);
+                break;
+            }
+
+            case type_color: {
+                ColorParam* colorParam = new ColorParam(argsInfo[i].name, this);
+                vbox->addWidget(colorParam);
+                break;
+            }
+            
+            default: {
+                QLabel *label = new QLabel(argsInfo[i].name, this);
+                vbox->addWidget(label);
+            }
+            
         }
-        else {
-            QLabel *label = new QLabel(argsInfo[i].name, this);
-            vbox->addWidget(label);
-        }
+
+
+        
+        // if(argsInfo[i].type == arg_type::type_float) {
+        //     SliderParam* slider = new SliderParam(argsInfo[i].name, this);
+        //     vbox->addWidget(slider);
+        // }
+        // else if (argsInfo[i].type == arg_type::type_float) {
+        //     QLabel *label = new QLabel(argsInfo[i].name, this);
+        //     vbox->addWidget(label);
+        // else {
+        //     QLabel *label = new QLabel(argsInfo[i].name, this);
+        //     vbox->addWidget(label);
+        // }
     }
 
 //    for(int i=0; i<numParams; ++i) {

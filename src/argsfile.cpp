@@ -93,6 +93,7 @@ int parseArgsFile(ArgsInfo*& argsParams) {
             argsParams[i].defaultFloat = atoi(valueChar);
             break;
         case type_color:
+            
         case type_int:
         case type_string:
         case type_normal:
