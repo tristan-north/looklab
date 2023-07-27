@@ -1,6 +1,8 @@
 #include "parameters.h"
+#include "ParamWidgets/boolparam.h"
 #include "ParamWidgets/colorparam.h"
 #include "ParamWidgets/sliderparam.h"
+#include "ParamWidgets/stringparam.h"
 #include "argsfile.h"
 #include "rman.h"
 #include <QLabel>
@@ -39,16 +41,28 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
         switch (argsInfo[i].type) {
             case type_float: {
                 SliderParam* slider = new SliderParam(argsInfo[i].name, this);
+                slider->setDefault(argsInfo[i].defaultFloat);
                 vbox->addWidget(slider);
                 break;
             }
 
+            case type_normal:
             case type_color: {
                 ColorParam* colorParam = new ColorParam(argsInfo[i].name, this);
                 vbox->addWidget(colorParam);
                 break;
             }
+            case type_string: {
+                StringParam* stringParam = new StringParam(argsInfo[i].name, this);
+                vbox->addWidget(stringParam);
+                break;
+            }
             
+            case type_int: {
+                BoolParam* boolParam= new BoolParam(argsInfo[i].name, this);
+                vbox->addWidget(boolParam);
+                break;
+            }
             default: {
                 QLabel *label = new QLabel(argsInfo[i].name, this);
                 vbox->addWidget(label);

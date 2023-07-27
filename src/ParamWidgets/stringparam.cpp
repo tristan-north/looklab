@@ -1,11 +1,11 @@
-#include "colorparam.h"
+#include "stringparam.h"
 #include "common.h"
 #include <QLabel>
 #include <QLineEdit>
-#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 
-ColorParam::ColorParam(const QString name, QWidget* parent) : QWidget(parent) {
+StringParam::StringParam(const QString name, QWidget* parent) : QWidget(parent) {
     QHBoxLayout* hbox = new QHBoxLayout;
     hbox->setMargin(0);
 
@@ -15,18 +15,10 @@ ColorParam::ColorParam(const QString name, QWidget* parent) : QWidget(parent) {
     m_label->setFixedSize(PARAMETER_LABEL_WIDTH, height);
     hbox->addWidget(m_label);
 
-    m_textBoxR = new QLineEdit(this);
-    m_textBoxR->setFixedSize(50, height);
+    m_textBox = new QLineEdit(this);
+    m_textBox->setFixedSize(250, height);
     // connect(m_textBox, SIGNAL(editingFinished()), this, SLOT(onTextEditValueChanged()));
-    hbox->addWidget(m_textBoxR);
-
-    m_textBoxG = new QLineEdit(this);
-    m_textBoxG->setFixedSize(50, height);
-    hbox->addWidget(m_textBoxG);
-  
-    m_textBoxB = new QLineEdit(this);
-    m_textBoxB->setFixedSize(50, height);
-    hbox->addWidget(m_textBoxB);
+    hbox->addWidget(m_textBox);
 
     hbox->addStretch();
   

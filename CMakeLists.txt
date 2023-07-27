@@ -25,7 +25,7 @@ add_executable(looklab
         src/mainwindow.h
         src/shaders.h src/tif.cpp src/tif.h src/perftimer.h src/displaydriver.cpp src/displaydriver.h src/rman.cpp
         src/rman.h src/common.h src/renderview.cpp src/renderview.h src/geo.cpp src/geo.h
-        src/parameters.cpp src/parameters.h src/nodegraph.cpp src/nodegraph.h src/ParamWidgets/sliderparam.cpp src/ParamWidgets/sliderparam.h src/argsfile.cpp src/argsfile.h src/ParamWidgets/colorparam.h src/ParamWidgets/colorparam.cpp)
+        src/parameters.cpp src/parameters.h src/nodegraph.cpp src/nodegraph.h src/ParamWidgets/sliderparam.cpp src/ParamWidgets/sliderparam.h src/argsfile.cpp src/argsfile.h src/ParamWidgets/colorparam.h src/ParamWidgets/colorparam.cpp src/ParamWidgets/stringparam.h src/ParamWidgets/stringparam.cpp src/ParamWidgets/boolparam.h src/ParamWidgets/boolparam.cpp)
 
 
 target_link_libraries(looklab Qt5::Widgets)

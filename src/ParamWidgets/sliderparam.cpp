@@ -1,4 +1,5 @@
 #include "sliderparam.h"
+#include "common.h"
 #include <QLabel>
 #include <QLineEdit>
 #include <QMouseEvent>
@@ -11,10 +12,10 @@ SliderParam::SliderParam(const QString name, QWidget* parent) : QWidget(parent) 
     QHBoxLayout* hbox = new QHBoxLayout;
     hbox->setMargin(0);
 
-    int height = 25;
+    int height = PARAMETER_HEIGHT;
     m_label = new QLabel(name, this);
     m_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    m_label->setFixedSize(90, height);
+    m_label->setFixedSize(PARAMETER_LABEL_WIDTH, height);
     hbox->addWidget(m_label);
 
     m_textBox = new QLineEdit(this);
@@ -27,6 +28,12 @@ SliderParam::SliderParam(const QString name, QWidget* parent) : QWidget(parent) 
     hbox->addWidget(m_slider);
 
     setLayout(hbox);
+}
+
+
+void SliderParam::setDefault(float defaultValue) {
+    m_textBox->setText(QString::number(defaultValue, 'f', 2));
+    m_slider->setValue(defaultValue);
 }
 
 void SliderParam::onSliderValueChanged(float newValue) {

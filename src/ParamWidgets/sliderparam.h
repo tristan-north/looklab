@@ -12,6 +12,7 @@ class SliderParam : public QWidget {
 
 public:
     SliderParam(const QString name, QWidget* parent);
+    void setDefault(float defaultValue);
 
 signals:
     void paramChanged(float newValue);
