@@ -17,6 +17,7 @@ SliderParam::SliderParam(const QString name, QWidget* parent) : QWidget(parent) 
     m_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     m_label->setFixedSize(PARAMETER_LABEL_WIDTH, height);
     hbox->addWidget(m_label);
+    hbox->addSpacing(PARAMETER_SPACE_AFTER_LABEL);
 
     m_textBox = new QLineEdit(this);
     m_textBox->setFixedSize(50, height);
@@ -57,7 +58,7 @@ void SliderParam::onTextEditValueChanged() {
 // Slider Widget (used in Slider Param)
 SliderWidget::SliderWidget(QWidget* parent) : QWidget(parent),
                                               m_frameBrush(QColor(30, 30, 30), Qt::SolidPattern),
-                                              m_sliderBrush(QColor(60, 70, 120), Qt::SolidPattern) {
+                                              m_sliderBrush(QColor(PARAMETER_FILL_COLOR), Qt::SolidPattern) {
 }
 
 void SliderWidget::paintEvent(QPaintEvent *event) {

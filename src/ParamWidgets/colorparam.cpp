@@ -14,6 +14,7 @@ ColorParam::ColorParam(const QString name, QWidget* parent) : QWidget(parent) {
     m_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     m_label->setFixedSize(PARAMETER_LABEL_WIDTH, height);
     hbox->addWidget(m_label);
+    hbox->addSpacing(PARAMETER_SPACE_AFTER_LABEL);
 
     m_textBoxR = new QLineEdit(this);
     m_textBoxR->setFixedSize(50, height);
@@ -31,4 +32,8 @@ ColorParam::ColorParam(const QString name, QWidget* parent) : QWidget(parent) {
     hbox->addStretch();
   
     setLayout(hbox);
+}
+
+void ColorParam::setDefault(Imath::V3f defaultValue) {
+    m_textBoxR->setText(QString::number(defaultValue.x));
 }

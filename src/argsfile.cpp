@@ -87,12 +87,20 @@ int parseArgsFile(ArgsInfo*& argsParams) {
         switch (argsParams[i].type) {
         case type_unknown:
             break;
-        case type_float:
+        case type_float: {
             char valueChar[32];
             strncpy(valueChar, pStartOfDefault, pEndOfDefault - pStartOfDefault);
-            argsParams[i].defaultFloat = atoi(valueChar);
+            valueChar[pEndOfDefault - pStartOfDefault] = '\0';
+            argsParams[i].defaultFloat = atof(valueChar);
             break;
-        case type_color:
+        }
+        case type_color: {
+            char valueChar[32];
+            strncpy(valueChar, pStartOfDefault, pEndOfDefault - pStartOfDefault);
+            valueChar[pEndOfDefault - pStartOfDefault] = '\0';
+            argsParams[i].defaultColor.x = atof(valueChar);
+            break;
+        }
             
         case type_int:
         case type_string:

@@ -18,7 +18,7 @@ struct ArgsInfo{
 
     union {
         float defaultFloat;
-        Imath::V3f defualtColor;
+        Imath::V3f defaultColor;
         int defaultInt;
         char defaultString[64];
         Imath::V3f defualtNormal;

@@ -5,6 +5,7 @@
 #include "ParamWidgets/stringparam.h"
 #include "argsfile.h"
 #include "rman.h"
+#include "common.h"
 #include <QLabel>
 #include <QVBoxLayout>
 
@@ -15,7 +16,8 @@ void albedoChanged(float value) {
 Parameters::Parameters(QWidget* parent) : QFrame(parent) {
     setMinimumWidth(500);
 
-    setStyleSheet(R"(
+    // Can't use #define to replace inside strings so need to do it after
+    QString styleSheet(R"(
         QFrame {border-color: rgb(0,0,0); border-style: solid; border-width: 1px; border-radius:4px;}
         QLabel {color: rgb(150, 150, 150); font:15px 'Inter'; border-width: 0px;}
         QLineEdit {color: rgb(220, 220, 220); font:15px 'Inter';
@@ -23,8 +25,17 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
                     border-style: solid; border-color: rgb(45,45,45); border-width:1px;
                     border-radius:4px;
                     padding: 2px;}
-        )");
 
+        QCheckBox::indicator {border: 1px solid rgb(45,45,45); 
+                              border-radius: 3px;
+                              background-color: rgb(30,30,30);
+                              width: 15; height: 15;}
+        QCheckBox::indicator::checked {background-color: FILLCOLOR;}
+        )");
+  
+    styleSheet.replace("FILLCOLOR", QColor(PARAMETER_FILL_COLOR).name());
+    setStyleSheet(styleSheet);
+    
     QVBoxLayout* vbox = new QVBoxLayout;
 
 //    SliderParam* slider = new SliderParam("param1", this);
@@ -49,6 +60,7 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
             case type_normal:
             case type_color: {
                 ColorParam* colorParam = new ColorParam(argsInfo[i].name, this);
+                colorParam->setDefault(argsInfo[i].defaultColor);
                 vbox->addWidget(colorParam);
                 break;
             }

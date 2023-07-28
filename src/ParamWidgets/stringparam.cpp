@@ -14,13 +14,11 @@ StringParam::StringParam(const QString name, QWidget* parent) : QWidget(parent) 
     m_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     m_label->setFixedSize(PARAMETER_LABEL_WIDTH, height);
     hbox->addWidget(m_label);
+    hbox->addSpacing(PARAMETER_SPACE_AFTER_LABEL);
 
     m_textBox = new QLineEdit(this);
-    m_textBox->setFixedSize(250, height);
     // connect(m_textBox, SIGNAL(editingFinished()), this, SLOT(onTextEditValueChanged()));
     hbox->addWidget(m_textBox);
 
-    hbox->addStretch();
-  
     setLayout(hbox);
 }

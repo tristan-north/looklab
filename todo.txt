@@ -1,5 +1,5 @@
 Currently
-o Reading in color default value in args file.
+o Reading in color default value in args file. Have read first value of the 3.
 
 
 
