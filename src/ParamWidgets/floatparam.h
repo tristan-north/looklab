@@ -7,15 +7,15 @@ class QLineEdit;
 class QSlider;
 class SliderWidget;
 
-class SliderParam : public QWidget {
+class FloatParam : public QWidget {
     Q_OBJECT
 
 public:
-    SliderParam(const QString name, QWidget* parent);
+    FloatParam(const QString name, QWidget* parent);
     void setDefault(float defaultValue);
 
 signals:
-    void paramChanged(float newValue);
+    void paramChanged(char* paramName, float newValue);
 
 private slots:
     void onSliderValueChanged(float newValue);
@@ -25,6 +25,7 @@ private:
     QLabel* m_label;
     QLineEdit* m_textBox;
     SliderWidget* m_slider;
+    float m_lastValue;
 };
 
 

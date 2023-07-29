@@ -2,6 +2,7 @@
 #include "common.h"
 #include "displaydriver.h"
 #include "geo.h"
+#include <stdlib.h>
 #include <QMatrix>
 #include <RixPredefinedStrings.hpp>
 #include <RixSceneGraph.h>
@@ -177,14 +178,32 @@ void rmanSetCamXform(const QMatrix4x4& xformMat) {
     }
 }
 
-void rmanSetAlbedo(float value) {
+void rmanSetColorParam(char* paramName, float Cx, float Cy, float Cz) {
     {
         rsg::Scene::ScopedEdit edit(g_scene);
         rsg::Shader pxrSurf(rsg::ShaderType::k_Bxdf, RtUString("LamaDiffuse"), RtUString("pixSurf"));
-        pxrSurf.params.SetColor(RtUString("diffuseColor"), RtColorRGB(value, value, value));
+        pxrSurf.params.SetColor(RtUString(paramName), RtColorRGB(Cx, Cy, Cz));
         rsg::Shader const bxdf[] = {pxrSurf};
         g_material->SetBxdf(1, bxdf);
     }
+
+    free(paramName);
+    paramName = nullptr;
+    printf("rmanSetColorParam\n");
+}
+
+void rmanSetFloatParam(char* paramName, float x) {
+    {
+        rsg::Scene::ScopedEdit edit(g_scene);
+        rsg::Shader pxrSurf(rsg::ShaderType::k_Bxdf, RtUString("LamaDiffuse"), RtUString("pixSurf"));
+        pxrSurf.params.SetFloat(RtUString(paramName), x);
+        rsg::Shader const bxdf[] = {pxrSurf};
+        g_material->SetBxdf(1, bxdf);
+    }
+
+    free(paramName);
+    paramName = nullptr;
+    printf("rmanSetFloatParam\n");
 }
 
 void startRender() {

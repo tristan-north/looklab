@@ -83,7 +83,7 @@ int parseArgsFile(ArgsInfo*& argsParams) {
         // Get default
         const char* pStartOfDefault = strstr(pBuf, "default=");
         pStartOfDefault += sizeof("default=");
-        const char* pEndOfDefault = strchr(pStartOfDefault + 1, '"');
+        const char* pEndOfDefault = strchr(pStartOfDefault, '"');
         switch (argsParams[i].type) {
         case type_unknown:
             break;
@@ -94,23 +94,31 @@ int parseArgsFile(ArgsInfo*& argsParams) {
             argsParams[i].defaultFloat = atof(valueChar);
             break;
         }
-        case type_color: {
-            char valueChar[32];
-            strncpy(valueChar, pStartOfDefault, pEndOfDefault - pStartOfDefault);
-            valueChar[pEndOfDefault - pStartOfDefault] = '\0';
-            argsParams[i].defaultColor.x = atof(valueChar);
-            break;
-        }
-            
-        case type_int:
-        case type_string:
         case type_normal:
+        case type_color: {
+            const char* startOfFloat = pStartOfDefault;
+            argsParams[i].defaultColor.x = atof(startOfFloat);
+            startOfFloat = strchr(startOfFloat, ' ') + 1;
+            argsParams[i].defaultColor.y = atof(startOfFloat);
+            startOfFloat = strchr(startOfFloat, ' ') + 1;
+            argsParams[i].defaultColor.z = atof(startOfFloat);
             break;
         }
-    }
 
-    for (int i = 0; i < numParams; i++) {
-        printf("%s : %d : %.2f\n", argsParams[i].name, argsParams[i].type, argsParams[i].defaultFloat);
+        case type_int: {
+            if (pStartOfDefault[0] == '0')
+                argsParams[i].defaultInt = false;
+            else
+                argsParams[i].defaultInt = true;
+            break;
+        }
+        case type_string:
+            int strLen = pEndOfDefault - pStartOfDefault;
+            assert(strLen < sizeof(argsParams[i].defaultString)+1 && "Default string too long.");
+            strncpy(argsParams[i].defaultString, pStartOfDefault, strLen);
+            argsParams[i].defaultString[strLen] = '\0';
+            break;
+        }
     }
 
     return numParams;

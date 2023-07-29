@@ -4,6 +4,7 @@
 #include <QHBoxLayout>
 #include <QCheckBox>
 #include <qdebug.h>
+#include <qnamespace.h>
 
 
 BoolParam::BoolParam(const QString name, QWidget* parent) : QWidget(parent) {
@@ -25,3 +26,5 @@ BoolParam::BoolParam(const QString name, QWidget* parent) : QWidget(parent) {
   
     setLayout(hbox);
 }
+
+void BoolParam::setDefault(bool defaultValue) { m_checkBox->setCheckState(Qt::Checked); }

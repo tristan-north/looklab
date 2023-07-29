@@ -4,4 +4,6 @@
 
 void startRender();
 void rmanSetCamXform(const QMatrix4x4& xformMat);
-void rmanSetAlbedo(float value);
+void rmanSetColorParam(char* paramName, float Cx, float Cy, float Cz); 
+void rmanSetFloatParam(char* paramName, float x); 
+

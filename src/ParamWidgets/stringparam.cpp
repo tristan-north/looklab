@@ -22,3 +22,4 @@ StringParam::StringParam(const QString name, QWidget* parent) : QWidget(parent) 
 
     setLayout(hbox);
 }
+void StringParam::setDefault(const char* defaultValue) { m_textBox->setText(defaultValue); }

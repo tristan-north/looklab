@@ -10,6 +10,7 @@ class BoolParam: public QWidget {
 
 public:
     BoolParam(const QString name, QWidget* parent);
+    void setDefault(bool defaultValue);
 
 // signals:
 //     void paramChanged(float newValue);

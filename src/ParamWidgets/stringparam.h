@@ -10,15 +10,16 @@ class StringParam: public QWidget {
 
 public:
     StringParam(const QString name, QWidget* parent);
+    void setDefault(const char* defaultValue);
 
-// signals:
-//     void paramChanged(float newValue);
+    // signals:
+    //     void paramChanged(float newValue);
 
-// private slots:
-//     void onSliderValueChanged(float newValue);
-//     void onTextEditValueChanged();
+    // private slots:
+    //     void onSliderValueChanged(float newValue);
+    //     void onTextEditValueChanged();
 
-private:
+  private:
     QLabel* m_label;
     QLineEdit* m_textBox;
 };

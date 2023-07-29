@@ -13,16 +13,16 @@ public:
     ColorParam(const QString name, QWidget* parent);
     void setDefault(Imath::V3f defaultValue);
 
-// signals:
-//     void paramChanged(float newValue);
+signals:
+    void paramChanged(char* paramName, float Cx, float Cy, float Cz);
 
-// private slots:
-//     void onSliderValueChanged(float newValue);
-//     void onTextEditValueChanged();
+private slots:
+    void onTextEditValueChanged();
 
 private:
     QLabel* m_label;
     QLineEdit* m_textBoxR;
     QLineEdit* m_textBoxG;
     QLineEdit* m_textBoxB;
+    Imath::V3f m_lastValue;
 };

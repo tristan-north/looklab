@@ -1,7 +1,7 @@
 #include "parameters.h"
 #include "ParamWidgets/boolparam.h"
 #include "ParamWidgets/colorparam.h"
-#include "ParamWidgets/sliderparam.h"
+#include "ParamWidgets/floatparam.h"
 #include "ParamWidgets/stringparam.h"
 #include "argsfile.h"
 #include "rman.h"
@@ -9,9 +9,6 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-void albedoChanged(float value) {
-    rmanSetAlbedo(value);
-}
 
 Parameters::Parameters(QWidget* parent) : QFrame(parent) {
     setMinimumWidth(500);
@@ -51,8 +48,9 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
     for (int i=0; i<numParams; ++i) {
         switch (argsInfo[i].type) {
             case type_float: {
-                SliderParam* slider = new SliderParam(argsInfo[i].name, this);
+                FloatParam* slider = new FloatParam(argsInfo[i].name, this);
                 slider->setDefault(argsInfo[i].defaultFloat);
+                connect(slider, &FloatParam::paramChanged, rmanSetFloatParam);
                 vbox->addWidget(slider);
                 break;
             }
@@ -61,17 +59,20 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
             case type_color: {
                 ColorParam* colorParam = new ColorParam(argsInfo[i].name, this);
                 colorParam->setDefault(argsInfo[i].defaultColor);
+                connect(colorParam, &ColorParam::paramChanged, rmanSetColorParam);
                 vbox->addWidget(colorParam);
                 break;
             }
             case type_string: {
                 StringParam* stringParam = new StringParam(argsInfo[i].name, this);
+                stringParam->setDefault(argsInfo[i].defaultString);
                 vbox->addWidget(stringParam);
                 break;
             }
             
             case type_int: {
                 BoolParam* boolParam= new BoolParam(argsInfo[i].name, this);
+                boolParam->setDefault(argsInfo[i].defaultInt);
                 vbox->addWidget(boolParam);
                 break;
             }

@@ -1,4 +1,4 @@
-#include "sliderparam.h"
+#include "floatparam.h"
 #include "common.h"
 #include <QLabel>
 #include <QLineEdit>
@@ -8,7 +8,7 @@
 #include <QVBoxLayout>
 
 
-SliderParam::SliderParam(const QString name, QWidget* parent) : QWidget(parent) {
+FloatParam::FloatParam(const QString name, QWidget* parent) : QWidget(parent) {
     QHBoxLayout* hbox = new QHBoxLayout;
     hbox->setMargin(0);
 
@@ -32,27 +32,41 @@ SliderParam::SliderParam(const QString name, QWidget* parent) : QWidget(parent) 
 }
 
 
-void SliderParam::setDefault(float defaultValue) {
-    m_textBox->setText(QString::number(defaultValue, 'f', 2));
+void FloatParam::setDefault(float defaultValue) {
+    m_textBox->setText(QString::number(defaultValue));
     m_slider->setValue(defaultValue);
+    m_lastValue = defaultValue;
 }
 
-void SliderParam::onSliderValueChanged(float newValue) {
-    newValue = newValue < 0.0f ? 0.0f : newValue;
-    newValue = newValue > 1.0f ? 1.0f : newValue;
-    m_textBox->setText(QString::number(newValue, 'f', 2));
+void FloatParam::onSliderValueChanged(float newValue) {
+    if(newValue == m_lastValue)
+        return;
+    
+    m_textBox->setText(QString::number(newValue));
 
-    emit paramChanged(newValue);
+    char* paramName = (char*)malloc(m_label->text().length()+1);
+    strcpy(paramName, qPrintable(m_label->text()));
+    emit paramChanged(paramName, newValue);
+
+    m_lastValue = newValue;
 }
 
-void SliderParam::onTextEditValueChanged() {
-
-    float valueAsFloat = m_textBox->text().toFloat();
-    m_slider->setValue(valueAsFloat);
-    m_textBox->setText(QString::number(valueAsFloat, 'f', 2));
+void FloatParam::onTextEditValueChanged() {
     m_textBox->clearFocus();
+    
+    float valueAsFloat = m_textBox->text().toFloat();
+    m_textBox->setText(QString::number(valueAsFloat));
+    
+    if(valueAsFloat == m_lastValue)
+        return;
+    
+    m_slider->setValue(valueAsFloat);
 
-    emit paramChanged(valueAsFloat);
+    char* paramName = (char*)malloc(m_label->text().length()+1);
+    strcpy(paramName, qPrintable(m_label->text()));
+    emit paramChanged(paramName, valueAsFloat);
+
+    m_lastValue = valueAsFloat;
 }
 
 // Slider Widget (used in Slider Param)
@@ -88,9 +102,20 @@ void SliderWidget::mousePressEvent(QMouseEvent *event) {
 void SliderWidget::mouseMoveEvent(QMouseEvent *event) {
     QPoint pos = event->pos();
     m_value = event->pos().x() / (float)this->rect().width();
+    
+    // Clamp
+    m_value = m_value < 0.0f ? 0.0f : m_value;
+    m_value = m_value > 1.0f ? 1.0f : m_value;
+
+    // Round to 2 decimal places
+    m_value *= 100.0f;
+    m_value = roundf(m_value);
+    m_value /= 100.0f;
+        
     update();
     emit sliderMoved(m_value);
 }
+
 void SliderWidget::setValue(float newValue) {
     m_value = newValue;
     update();
