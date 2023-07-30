@@ -54,7 +54,6 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
                 vbox->addWidget(slider);
                 break;
             }
-
             case type_normal:
             case type_color: {
                 ColorParam* colorParam = new ColorParam(argsInfo[i].name, this);
@@ -66,10 +65,10 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
             case type_string: {
                 StringParam* stringParam = new StringParam(argsInfo[i].name, this);
                 stringParam->setDefault(argsInfo[i].defaultString);
+                connect(stringParam, &StringParam::paramChanged, rmanSetStringParam);
                 vbox->addWidget(stringParam);
                 break;
             }
-            
             case type_int: {
                 BoolParam* boolParam= new BoolParam(argsInfo[i].name, this);
                 boolParam->setDefault(argsInfo[i].defaultInt);

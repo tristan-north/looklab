@@ -206,6 +206,18 @@ void rmanSetFloatParam(char* paramName, float x) {
     printf("rmanSetFloatParam\n");
 }
 
+void rmanSetStringParam(char* paramName, char* stringValue) {
+    {
+        rsg::Scene::ScopedEdit edit(g_scene);
+        rsg::Shader pxrSurf(rsg::ShaderType::k_Bxdf, RtUString("LamaDiffuse"), RtUString("pixSurf"));
+        pxrSurf.params.SetString(RtUString(paramName), RtUString(stringValue));
+        rsg::Shader const bxdf[] = {pxrSurf};
+        g_material->SetBxdf(1, bxdf);
+    }
+    free(paramName);
+    free(stringValue);
+}
+
 void startRender() {
     printf("Starting Render.\n");
     registerDisplayDriver();

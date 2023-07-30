@@ -12,14 +12,14 @@ public:
     StringParam(const QString name, QWidget* parent);
     void setDefault(const char* defaultValue);
 
-    // signals:
-    //     void paramChanged(float newValue);
+signals:
+    void paramChanged(char* paramName, char* stringValue);
 
-    // private slots:
-    //     void onSliderValueChanged(float newValue);
-    //     void onTextEditValueChanged();
-
-  private:
+private slots:
+    void onTextEditValueChanged();
+    
+private:
     QLabel* m_label;
     QLineEdit* m_textBox;
+    char m_lastStringValue[256];
 };
