@@ -12,12 +12,11 @@ public:
     BoolParam(const QString name, QWidget* parent);
     void setDefault(bool defaultValue);
 
-// signals:
-//     void paramChanged(float newValue);
+signals:
+    void paramChanged(char* paramName, bool newValue);
 
-// private slots:
-//     void onSliderValueChanged(float newValue);
-//     void onTextEditValueChanged();
+private slots:
+    void onCheckedStatusChanged(int newState);
 
 private:
     QLabel* m_label;

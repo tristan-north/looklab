@@ -19,7 +19,7 @@ BoolParam::BoolParam(const QString name, QWidget* parent) : QWidget(parent) {
     hbox->addSpacing(PARAMETER_SPACE_AFTER_LABEL);
 
     m_checkBox = new QCheckBox(this);
-    // connect(m_textBox, SIGNAL(editingFinished()), this, SLOT(onTextEditValueChanged()));
+    connect(m_checkBox, SIGNAL(stateChanged(int)), this, SLOT(onCheckedStatusChanged(int)));
     hbox->addWidget(m_checkBox);
 
     hbox->addStretch();
@@ -27,4 +27,17 @@ BoolParam::BoolParam(const QString name, QWidget* parent) : QWidget(parent) {
     setLayout(hbox);
 }
 
-void BoolParam::setDefault(bool defaultValue) { m_checkBox->setCheckState(Qt::Checked); }
+void BoolParam::setDefault(bool defaultValue) { 
+    if(defaultValue)
+        m_checkBox->setCheckState(Qt::Checked);
+    else
+        m_checkBox->setCheckState(Qt::Unchecked);
+  
+}
+void BoolParam::onCheckedStatusChanged(int newState) {
+    bool newStateBool = newState != 0;
+  
+    char* paramName = (char*)malloc(m_label->text().length()+1);
+    strcpy(paramName, qPrintable(m_label->text()));
+    emit paramChanged(paramName, newStateBool);
+}

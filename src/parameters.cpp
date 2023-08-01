@@ -29,7 +29,7 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
                               width: 15; height: 15;}
         QCheckBox::indicator::checked {background-color: FILLCOLOR;}
         )");
-  
+
     styleSheet.replace("FILLCOLOR", QColor(PARAMETER_FILL_COLOR).name());
     setStyleSheet(styleSheet);
     
@@ -45,56 +45,48 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
 
     ArgsInfo* argsInfo;
     int numParams = parseArgsFile(argsInfo);
+    
     for (int i=0; i<numParams; ++i) {
-        switch (argsInfo[i].type) {
+        ArgsInfo* arg = argsInfo+i;
+        
+        switch (arg->type) {
             case type_float: {
-                FloatParam* slider = new FloatParam(argsInfo[i].name, this);
-                slider->setDefault(argsInfo[i].defaultFloat);
+                FloatParam* slider = new FloatParam(arg->name, this);
+                slider->setDefault(arg->defaultFloat);
                 connect(slider, &FloatParam::paramChanged, rmanSetFloatParam);
                 vbox->addWidget(slider);
                 break;
             }
             case type_normal:
             case type_color: {
-                ColorParam* colorParam = new ColorParam(argsInfo[i].name, this);
-                colorParam->setDefault(argsInfo[i].defaultColor);
+                ColorParam* colorParam = new ColorParam(arg->name, this);
+                colorParam->setDefault(arg->defaultColor);
                 connect(colorParam, &ColorParam::paramChanged, rmanSetColorParam);
                 vbox->addWidget(colorParam);
                 break;
             }
             case type_string: {
-                StringParam* stringParam = new StringParam(argsInfo[i].name, this);
-                stringParam->setDefault(argsInfo[i].defaultString);
+                StringParam* stringParam = new StringParam(arg->name, this);
+                stringParam->setDefault(arg->defaultString);
                 connect(stringParam, &StringParam::paramChanged, rmanSetStringParam);
                 vbox->addWidget(stringParam);
                 break;
             }
             case type_int: {
-                BoolParam* boolParam= new BoolParam(argsInfo[i].name, this);
-                boolParam->setDefault(argsInfo[i].defaultInt);
+                BoolParam* boolParam = new BoolParam(arg->name, this);
+                boolParam->setDefault(arg->defaultInt);
+                connect(boolParam, &BoolParam::paramChanged, rmanSetIntParam);
                 vbox->addWidget(boolParam);
                 break;
             }
             default: {
-                QLabel *label = new QLabel(argsInfo[i].name, this);
+                QLabel *label = new QLabel(arg->name, this);
                 vbox->addWidget(label);
             }
             
         }
 
 
-        
-        // if(argsInfo[i].type == arg_type::type_float) {
-        //     SliderParam* slider = new SliderParam(argsInfo[i].name, this);
-        //     vbox->addWidget(slider);
-        // }
-        // else if (argsInfo[i].type == arg_type::type_float) {
-        //     QLabel *label = new QLabel(argsInfo[i].name, this);
-        //     vbox->addWidget(label);
-        // else {
-        //     QLabel *label = new QLabel(argsInfo[i].name, this);
-        //     vbox->addWidget(label);
-        // }
     }
 
 //    for(int i=0; i<numParams; ++i) {

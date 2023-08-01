@@ -1,9 +1,8 @@
 Currently
-o Connect bool and string params to rman. Check that they don't emit paramChanged for the same value.
 o Fix it so that the shader values don't get reset to defaults
 o Add param groups and param node heading.
 
-
+ 
 Texture Baking
 o Don't allocate pixels array for bake every bake
 o UDIM support, look into using multiple render targets to render all the UDIMs

@@ -218,6 +218,17 @@ void rmanSetStringParam(char* paramName, char* stringValue) {
     free(stringValue);
 }
 
+void rmanSetIntParam(char* paramName, bool boolValue) {
+    {
+        rsg::Scene::ScopedEdit edit(g_scene);
+        rsg::Shader pxrSurf(rsg::ShaderType::k_Bxdf, RtUString("LamaDiffuse"), RtUString("pixSurf"));
+        pxrSurf.params.SetInteger(RtUString(paramName), RtUInt64(boolValue));
+        rsg::Shader const bxdf[] = {pxrSurf};
+        g_material->SetBxdf(1, bxdf);
+    }
+    free(paramName);
+}
+
 void startRender() {
     printf("Starting Render.\n");
     registerDisplayDriver();
