@@ -29,6 +29,7 @@ MainWindow::MainWindow() {
     centralWidget->setLayout(vbox);
     setCentralWidget(centralWidget);
     setFocus();
+    setFocusPolicy(Qt::StrongFocus); // Set this so clicking off a lineEdit widget will remove focus
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {

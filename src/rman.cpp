@@ -1,4 +1,5 @@
 #include "rman.h"
+#include "RiTypesHelper.h"
 #include "common.h"
 #include "displaydriver.h"
 #include "geo.h"
@@ -14,6 +15,7 @@ namespace rsg = rman::scenegraph;
 rsg::Scene* g_scene = nullptr;
 rsg::Camera* g_camera = nullptr;
 rsg::Material* g_material = nullptr;
+rsg::Shader* g_shader = nullptr;
 
 void createScene(RixSGManager* sgmngr, stats::Session& statsSession) {
     // Create the scene
@@ -53,17 +55,15 @@ void createScene(RixSGManager* sgmngr, stats::Session& statsSession) {
 
     g_material = g_scene->CreateMaterial(US_NULL);
     {
-        rsg::Shader diffuse(rsg::ShaderType::k_Bxdf, RtUString("PxrDiffuse"), RtUString("diffuse"));
-        diffuse.params.SetColor(RtUString("diffuseColor"), RtColorRGB(1, 0, 0));
-        rsg::Shader const bxdf[] = {diffuse};
-        g_material->SetBxdf(1, bxdf);
+        g_shader = new rsg::Shader(rsg::ShaderType::k_Bxdf, RtUString("LamaDiffuse"), RtUString("diffuse"));
+        g_material->SetBxdf(1, g_shader);
     }
 
     // LIGHTS
     {
         rsg::AnalyticLight* light = g_scene->CreateAnalyticLight(RtUString("rectLight"));
         rsg::Shader lightShader(rsg::ShaderType::k_Light, RtUString("PxrRectLight"), RtUString("rectLight"));
-        lightShader.params.SetFloat(RtUString("intensity"), 25.8f);
+        lightShader.params.SetFloat(RtUString("intensity"), 70.f);
         light->SetLight(1, &lightShader);
         RtMatrix4x4 transform{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
         transform.Translate(0, 3.5, 0);
@@ -179,12 +179,10 @@ void rmanSetCamXform(const QMatrix4x4& xformMat) {
 }
 
 void rmanSetColorParam(char* paramName, float Cx, float Cy, float Cz) {
+    g_shader->params.SetColor(RtUString(paramName), RtColorRGB(Cx, Cy, Cz));
     {
         rsg::Scene::ScopedEdit edit(g_scene);
-        rsg::Shader pxrSurf(rsg::ShaderType::k_Bxdf, RtUString("LamaDiffuse"), RtUString("pixSurf"));
-        pxrSurf.params.SetColor(RtUString(paramName), RtColorRGB(Cx, Cy, Cz));
-        rsg::Shader const bxdf[] = {pxrSurf};
-        g_material->SetBxdf(1, bxdf);
+        g_material->SetBxdf(1, g_shader);
     }
 
     free(paramName);
@@ -193,12 +191,10 @@ void rmanSetColorParam(char* paramName, float Cx, float Cy, float Cz) {
 }
 
 void rmanSetFloatParam(char* paramName, float x) {
+    g_shader->params.SetFloat(RtUString(paramName), x);
     {
         rsg::Scene::ScopedEdit edit(g_scene);
-        rsg::Shader pxrSurf(rsg::ShaderType::k_Bxdf, RtUString("LamaDiffuse"), RtUString("pixSurf"));
-        pxrSurf.params.SetFloat(RtUString(paramName), x);
-        rsg::Shader const bxdf[] = {pxrSurf};
-        g_material->SetBxdf(1, bxdf);
+        g_material->SetBxdf(1, g_shader);
     }
 
     free(paramName);
@@ -207,24 +203,21 @@ void rmanSetFloatParam(char* paramName, float x) {
 }
 
 void rmanSetStringParam(char* paramName, char* stringValue) {
+    g_shader->params.SetString(RtUString(paramName), RtUString(stringValue));
     {
         rsg::Scene::ScopedEdit edit(g_scene);
-        rsg::Shader pxrSurf(rsg::ShaderType::k_Bxdf, RtUString("LamaDiffuse"), RtUString("pixSurf"));
-        pxrSurf.params.SetString(RtUString(paramName), RtUString(stringValue));
-        rsg::Shader const bxdf[] = {pxrSurf};
-        g_material->SetBxdf(1, bxdf);
+        g_material->SetBxdf(1, g_shader);
     }
     free(paramName);
     free(stringValue);
 }
 
 void rmanSetIntParam(char* paramName, bool boolValue) {
+    g_shader->params.SetInteger(RtUString(paramName), RtUInt64(boolValue));
     {
         rsg::Scene::ScopedEdit edit(g_scene);
-        rsg::Shader pxrSurf(rsg::ShaderType::k_Bxdf, RtUString("LamaDiffuse"), RtUString("pixSurf"));
-        pxrSurf.params.SetInteger(RtUString(paramName), RtUInt64(boolValue));
-        rsg::Shader const bxdf[] = {pxrSurf};
-        g_material->SetBxdf(1, bxdf);
+        g_material->SetBxdf(1, g_shader);
+
     }
     free(paramName);
 }

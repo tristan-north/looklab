@@ -1,5 +1,4 @@
 Currently
-o Fix it so that the shader values don't get reset to defaults
 o Add param groups and param node heading.
 
  
@@ -21,5 +20,4 @@ o Check alembics with ngons etc
 o Support abc hierachies more than just /obj/shape
 o Adjust cam pan speed based on where you click the model like in houdini
 o F key to frame geo
-o Check best way to tell rman about material parameter change. Currently recreating the bxdf on any parameter change.
 
