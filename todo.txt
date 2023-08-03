@@ -1,7 +1,8 @@
 Currently
-o Add param groups and param node heading.
+o Redo parsing of args file in a more character by character way and include parsing of page names.
+o Add param groups.
 
- 
+
 Texture Baking
 o Don't allocate pixels array for bake every bake
 o UDIM support, look into using multiple render targets to render all the UDIMs

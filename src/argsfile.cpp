@@ -21,14 +21,17 @@ int getNumParams(const char* argsBuf, const int argsBufSize) {
     return paramCount;
 }
 
-int parseArgsFile(ArgsInfo*& argsParams) {
-    char pathFromTree[] = R"(\lib\plugins\Args\LamaDiffuse.args)";
+int parseArgsFile(const char* name, ArgsInfo*& argsParams) {
+    char pathFromTree[] = R"(lib\plugins\Args\)";
+    char fileExt[] = ".args";
     char* rmanTree = getenv("RMANTREE");
-    assert(sizeof(pathFromTree) + strlen(rmanTree) < 255 && "Args filepath too long for buffer.");
+    assert(strlen(pathFromTree) + strlen(rmanTree) + strlen(name) + strlen(fileExt) < 255 && "Args filepath too long for buffer.");
+    
     char argsFilePath[256];
     strcpy(argsFilePath, rmanTree);
-
     strcat(argsFilePath, pathFromTree);
+    strcat(argsFilePath, name);
+    strcat(argsFilePath, fileExt);
 
 #if _WIN32
     struct __stat64 Stat = {};

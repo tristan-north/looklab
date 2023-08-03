@@ -25,4 +25,4 @@ struct ArgsInfo{
     };
 };
 
-int parseArgsFile(ArgsInfo*& argsParams);
+int parseArgsFile(const char* name, ArgsInfo*& argsParams);

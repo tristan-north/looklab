@@ -8,6 +8,7 @@
 #include "common.h"
 #include <QLabel>
 #include <QVBoxLayout>
+#include <qnamespace.h>
 
 
 Parameters::Parameters(QWidget* parent) : QFrame(parent) {
@@ -42,9 +43,14 @@ Parameters::Parameters(QWidget* parent) : QFrame(parent) {
 //    SliderParam* slider2 = new SliderParam("longish param", this);
 //    connect(slider2, &SliderParam::paramChanged, albedoChanged);
 //    vbox->addWidget(slider2);
+    char shaderName[] = "LamaDiffuse";
+    auto titleLabel = new QLabel(shaderName, this);
+    titleLabel->setAlignment(Qt::AlignHCenter);
+    vbox->addWidget(titleLabel);
+    vbox->addSpacing(10);
 
     ArgsInfo* argsInfo;
-    int numParams = parseArgsFile(argsInfo);
+    int numParams = parseArgsFile(shaderName, argsInfo);
     
     for (int i=0; i<numParams; ++i) {
         ArgsInfo* arg = argsInfo+i;
